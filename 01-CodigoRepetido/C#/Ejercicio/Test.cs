@@ -9,16 +9,27 @@ namespace IdiomExercise
     [TestClass]
     public class Test
     {
+        private double DurationInMiliseconds(DateTime beforeRunning, DateTime afterRunning)
+        {
+            return afterRunning.Subtract(beforeRunning).TotalMilliseconds;
+        }
+
+        private double TimerClassFunction(Action classFunction)
+        {
+            DateTime timeBeforeRunning = DateTime.Now;
+            classFunction();
+            DateTime timeAfterRunning = DateTime.Now;
+
+            return DurationInMiliseconds(timeBeforeRunning, timeAfterRunning);
+        }
         [TestMethod]
         public void AddingCustomerShouldNotTakeMoreThan50Milliseconds()
         {
             CustomerBook customerBook = new CustomerBook();
 
-            DateTime timeBeforeRunning = DateTime.Now;
-            customerBook.addCustomerNamed("John Lennon");
-            DateTime timeAfterRunning = DateTime.Now;
+            double testDuration = TimerClassFunction( () => customerBook.addCustomerNamed("paulMcCartney"));
 
-            Assert.IsTrue(timeAfterRunning.Subtract(timeBeforeRunning).TotalMilliseconds < 50);
+            Assert.IsTrue(testDuration < 50);
         }
 
         [TestMethod]
@@ -29,48 +40,48 @@ namespace IdiomExercise
 
             customerBook.addCustomerNamed(paulMcCartney);
 
-            DateTime timeBeforeRunning = DateTime.Now;
-            customerBook.removeCustomerNamed(paulMcCartney);
-            DateTime timeAfterRunning = DateTime.Now;
+            double testDuration = TimerClassFunction(() => customerBook.removeCustomerNamed(paulMcCartney));
 
-            Assert.IsTrue(timeAfterRunning.Subtract(timeBeforeRunning).TotalMilliseconds < 100);
+            Assert.IsTrue(testDuration < 100);
         }
 
         [TestMethod]
         public void CanNotAddACustomerWithEmptyName()
         {
-
             CustomerBook customerBook = new CustomerBook();
-
-            try
-            {
-                customerBook.addCustomerNamed("");
-                Assert.Fail();
-            }
-            catch (Exception e)
-            {
-                Assert.AreEqual(e.Message, CustomerBook.CUSTOMER_NAME_EMPTY);
-                Assert.IsTrue(customerBook.isEmpty());
-            }
+            GenerateExceptionWithCustomerBookMethod(() => customerBook.addCustomerNamed(""), customerBook);
         }
 
         [TestMethod]
         public void CanNotRemoveNotAddedCustomer()
         {
             CustomerBook customerBook = new CustomerBook();
-            
+
+            GenerateExceptionWithCustomerBookMethod(() => customerBook.removeCustomerNamed("John Lennon"), customerBook);
+
+        }
+
+        private void CheckErrorMessageAndEmptyCustomer(String message, String errorCode, CustomerBook customerBook)
+        {
+            Assert.AreEqual(message, errorCode);
+            Assert.IsTrue(customerBook.isEmpty());
+        }
+
+        private void GenerateExceptionWithCustomerBookMethod(Action classFunction, CustomerBook customerBook)
+        {
             try
             {
-                customerBook.removeCustomerNamed("John Lennon");
+                classFunction();
                 Assert.Fail();
             }
-            // Se utiliza otro tipo de exception por motivos del ejercicio
             catch (InvalidOperationException e)
             {
-                Assert.AreEqual(e.Message, CustomerBook.INVALID_CUSTOMER_NAME);
-                Assert.AreEqual(0, customerBook.numberOfCustomers());
+                CheckErrorMessageAndEmptyCustomer(e.Message, CustomerBook.INVALID_CUSTOMER_NAME, customerBook);
             }
-
+            catch (Exception e)
+            {
+                CheckErrorMessageAndEmptyCustomer(e.Message, CustomerBook.CUSTOMER_NAME_EMPTY, customerBook);
+            }
         }
     }
 }
