@@ -14,10 +14,10 @@ namespace IdiomExercise
             return afterRunning.Subtract(beforeRunning).TotalMilliseconds;
         }
 
-        private double TimerClassFunction(Action classFunction)
+        private double TimerClassFunction(Action classFunctionToTest)
         {
             DateTime timeBeforeRunning = DateTime.Now;
-            classFunction();
+            classFunctionToTest();
             DateTime timeAfterRunning = DateTime.Now;
 
             return DurationInMiliseconds(timeBeforeRunning, timeAfterRunning);
@@ -49,16 +49,14 @@ namespace IdiomExercise
         public void CanNotAddACustomerWithEmptyName()
         {
             CustomerBook customerBook = new CustomerBook();
-            GenerateExceptionWithCustomerBookMethod(() => customerBook.addCustomerNamed(""), customerBook);
+            GenerateExceptionWithCustomerBookMethod<Exception>(() => customerBook.addCustomerNamed(""), customerBook, CustomerBook.CUSTOMER_NAME_EMPTY);
         }
 
         [TestMethod]
         public void CanNotRemoveNotAddedCustomer()
         {
             CustomerBook customerBook = new CustomerBook();
-
-            GenerateExceptionWithCustomerBookMethod(() => customerBook.removeCustomerNamed("John Lennon"), customerBook);
-
+            GenerateExceptionWithCustomerBookMethod<InvalidOperationException>(() => customerBook.removeCustomerNamed("John Lennon"), customerBook, CustomerBook.INVALID_CUSTOMER_NAME);
         }
 
         private void CheckErrorMessageAndEmptyCustomer(String message, String errorCode, CustomerBook customerBook)
@@ -67,21 +65,19 @@ namespace IdiomExercise
             Assert.IsTrue(customerBook.isEmpty());
         }
 
-        private void GenerateExceptionWithCustomerBookMethod(Action classFunction, CustomerBook customerBook)
+        private void GenerateExceptionWithCustomerBookMethod<T>(Action classFunctionToTest, CustomerBook customerBook, String excpectedMessage) where T : Exception
         {
             try
             {
-                classFunction();
+                classFunctionToTest();
                 Assert.Fail();
             }
-            catch (InvalidOperationException e)
+            catch (T e)
             {
-                CheckErrorMessageAndEmptyCustomer(e.Message, CustomerBook.INVALID_CUSTOMER_NAME, customerBook);
+                CheckErrorMessageAndEmptyCustomer(e.Message, excpectedMessage, customerBook);
             }
-            catch (Exception e)
-            {
-                CheckErrorMessageAndEmptyCustomer(e.Message, CustomerBook.CUSTOMER_NAME_EMPTY, customerBook);
-            }
+            
         }
+        
     }
 }
