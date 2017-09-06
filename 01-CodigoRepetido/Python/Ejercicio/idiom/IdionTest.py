@@ -46,36 +46,6 @@ class CustomerBook:
         self.customerNames.remove(name)
 
 
-# # la clase esta no se si es un toque demasiado
-# class StopWatch:
-#     def __init__(self):
-#         self.start_time = 0
-#         self.end_time = 0
-#
-#     def start(self):
-#         self.start_time = time.time()
-#
-#     def stop(self):
-#         self.end_time = time.time()
-#
-#     @property
-#     def time_elapsed(self):
-#         return self.end_time - self.start_time
-#
-#     ## A partir de aaca  Esto ya no se si es la responsabilidad del Objecto
-#     def time_function(self, function_to_time):
-#         self.start()
-#         function_to_time()
-#         self.stop()
-#
-#     def less_than_ms(self, time_in_ms):
-#         return (self.time_elapsed) * 1000 < time_in_ms
-#
-#
-# def functionTakesLessTimeThan(function, time_in_ms):
-#     watch = StopWatch()
-#     watch.time_function(function)
-#     return watch.less_than_ms(time_in_ms)
 
 
 def functionTakeLessTime(function_to_time, time_in_ms):
@@ -107,44 +77,41 @@ class IdionTest(unittest.TestCase):
 
         self.assertTrue(functionTakeLessTime(lambda: customerBook.removeCustomerNamed('Paul McCartney'), 100))
 
-    def failUnlessExceptionRaises(self, function_to_test, error, assert_expression):
+    def failUnlessExceptionRaises(self, function_to_test, exception_class, exception_handler):
         try:
             function_to_test()
             self.Fail()
-        except error as error:
-            assert_expression(error)
+        except exception_class as exception:
+            exception_handler(exception)
 
-    def assertExceptionMessage(self, exception, message):
-        self.assertEquals(exception.message, message)
-
-    def assertCustomerBookIsEmptyAndExceptionMessage(self, customerBook, exception):
-        self.assertExceptionMessage(exception, CustomerBook.CUSTOMER_NAME_CAN_NOT_BE_EMPTY)
-        self.assertTrue(customerBook.isEmpty())
-
-    def assertCostumerBookHasCustomerAndExceptionMessage(self, customerBook, exception, customer_name):
-        self.assertExceptionMessage(exception, CustomerBook.INVALID_CUSTOMER_NAME)
-        self.assertTrue(customerBook.numberOfCustomers() == 1)
-        self.assertTrue(customerBook.includesCustomerNamed(customer_name))
-
+    def assertExceptionMessageAndExpression(self, exception, expected_message, assert_expression):
+        self.assertEquals(exception.message, expected_message)
+        assert_expression()
 
     def testCanNotAddACustomerWithEmptyName(self):
         customerBook = CustomerBook()
-        self.failUnlessExceptionRaises(function_to_test=lambda: customerBook.addCustomerNamed(''), error=ValueError,
-                                       assert_expression=lambda
-                                           exception: self.assertCustomerBookIsEmptyAndExceptionMessage(
-                                           customerBook, exception))
+
+        assertCustomerBookIsEmpty = lambda: self.assertTrue(customerBook.isEmpty())
+
+        self.failUnlessExceptionRaises(function_to_test=lambda: customerBook.addCustomerNamed(''),
+                                       exception_class=ValueError,
+                                       exception_handler=lambda exception: self.assertExceptionMessageAndExpression(
+                                           exception, CustomerBook.CUSTOMER_NAME_CAN_NOT_BE_EMPTY,
+                                           assertCustomerBookIsEmpty))
 
     def testCanNotRemoveNotAddedCustomer(self):
         customerBook = CustomerBook()
         customerBook.addCustomerNamed('Paul McCartney')
 
+        def assertCostumerBookHasCostumerNamed(self=self, customerBook=customerBook, customer_name='Paul McCartney'):
+            self.assertTrue(customerBook.numberOfCustomers() == 1)
+            self.assertTrue(customerBook.includesCustomerNamed(customer_name))
+
         self.failUnlessExceptionRaises(function_to_test=lambda: customerBook.removeCustomerNamed('John Lennon'),
-                                       error=KeyError,
-                                       assert_expression=lambda exception:
-                                       self.assertCostumerBookHasCustomerAndExceptionMessage(customerBook,
-                                                                                             exception,
-                                                                                             'Paul McCartney'))
+                                       exception_class=KeyError,
+                                       exception_handler=lambda exception: self.assertExceptionMessageAndExpression(
+                                           exception, CustomerBook.INVALID_CUSTOMER_NAME,
+                                           assertCostumerBookHasCostumerNamed))
 
-
-if __name__ == "__main__":
-    unittest.main()
+    if __name__ == "__main__":
+        unittest.main()
