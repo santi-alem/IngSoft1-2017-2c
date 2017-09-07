@@ -46,8 +46,6 @@ class CustomerBook:
         self.customerNames.remove(name)
 
 
-
-
 def functionTakeLessTime(function_to_time, time_in_ms):
     time_elapsed = timeFunction(function_to_time)
     return lessThanInMs(time_elapsed, time_in_ms)
@@ -107,11 +105,12 @@ class IdionTest(unittest.TestCase):
             self.assertTrue(customerBook.numberOfCustomers() == 1)
             self.assertTrue(customerBook.includesCustomerNamed(customer_name))
 
-        self.failUnlessExceptionRaises(function_to_test=lambda: customerBook.removeCustomerNamed('John Lennon'),
-                                       exception_class=KeyError,
-                                       exception_handler=lambda exception: self.assertExceptionMessageAndExpression(
-                                           exception, CustomerBook.INVALID_CUSTOMER_NAME,
-                                           assertCostumerBookHasCostumerNamed))
+        removeCustomerNotInBook = lambda: customerBook.removeCustomerNamed('John Lennon')
+        assertInvalidCustomerBook = lambda exception: self.assertExceptionMessageAndExpression(exception,
+                                                                                               CustomerBook.INVALID_CUSTOMER_NAME,
+                                                                                               assertCostumerBookHasCostumerNamed)
+        self.failUnlessExceptionRaises(function_to_test=removeCustomerNotInBook, exception_class=KeyError,
+                                       exception_handler=assertInvalidCustomerBook)
 
     if __name__ == "__main__":
         unittest.main()
