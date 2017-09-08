@@ -1,0 +1,8 @@
+C:\Documents and Settings\hernan\Mis documentos\Visual Studio 2010\Projects\C1-Numero-SolucionParcial-SinIf.dll
+C:\Documents and Settings\hernan\Mis documentos\Visual Studio 2010\Projects\C1-Numero-SolucionParcial-SinIf.pdb
+H:\Documents\10pines-documents\Capacitacion\C1 - Diseño Avanzado de Software con Objetos I\C#Projects\C1-Numero-SolucionParcial-SinIf\C1-Numero-SolucionParcial-SinIf\obj\Debug\ResolveAssemblyReference.cache
+H:\Documents\10pines-documents\Capacitacion\C1 - Diseño Avanzado de Software con Objetos I\C#Projects\C1-Numero-SolucionParcial-SinIf\C1-Numero-SolucionParcial-SinIf\obj\Debug\C1-Numero-SolucionParcial-SinIf.dll
+H:\Documents\10pines-documents\Capacitacion\C1 - Diseño Avanzado de Software con Objetos I\C#Projects\C1-Numero-SolucionParcial-SinIf\C1-Numero-SolucionParcial-SinIf\obj\Debug\C1-Numero-SolucionParcial-SinIf.pdb
+H:\Capacitacion\C1 - Diseño Avanzado de Software con Objetos I\C#Projects\C1-Numero-SolucionParcial-SinIf\C1-Numero-SolucionParcial-SinIf\obj\Debug\C1-Numero-SolucionParcial-SinIf.csprojResolveAssemblyReference.cache
+H:\Capacitacion\C1 - Diseño Avanzado de Software con Objetos I\C#Projects\C1-Numero-SolucionParcial-SinIf\C1-Numero-SolucionParcial-SinIf\obj\Debug\C1-Numero-SolucionParcial-SinIf.dll
+H:\Capacitacion\C1 - Diseño Avanzado de Software con Objetos I\C#Projects\C1-Numero-SolucionParcial-SinIf\C1-Numero-SolucionParcial-SinIf\obj\Debug\C1-Numero-SolucionParcial-SinIf.pdb
