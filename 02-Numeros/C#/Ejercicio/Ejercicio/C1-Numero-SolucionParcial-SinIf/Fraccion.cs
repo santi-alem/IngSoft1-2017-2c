@@ -38,15 +38,15 @@ namespace C1_Numero_SolucionParcial_SinIf
 		    return denominador;
 	    }
 
-	    override public bool esCero() {
+	    public override bool esCero() {
 		    return false;
 	    }
 
-	    override public bool esUno() {
+	    public override bool esUno() {
 		    return false;
 	    }
 	    
-	    override public bool Equals(Object anObject){
+	    public override bool Equals(Object anObject){
 		    if (typeof(Fraccion)==anObject.GetType()) 
 			    return equals((Fraccion) anObject);
 		    else
@@ -56,43 +56,60 @@ namespace C1_Numero_SolucionParcial_SinIf
 	    public bool equals(Fraccion aFraccion){
 		    return numerador.por(aFraccion.getDenominador()).Equals( denominador.por(aFraccion.getNumerador()));
 	    }
-	    
-	    override public int GetHashCode() {
+
+        public override int GetHashCode() {
 		    return numerador.GetHashCode() / denominador.GetHashCode();
 	    }
-	    
-	    override public Numero mas(Numero sumando) {
-	        if (sumando is Fraccion)
-	        {
-	            Fraccion sumandoComoFraccion = (Fraccion) sumando;
-	            Numero nuevoDenominador = denominador.por(sumandoComoFraccion.getDenominador());
-	            Numero nuevoNumerador1 = numerador.por(sumandoComoFraccion.getDenominador());
-	            Numero nuevoNumerador2 = denominador.por(sumandoComoFraccion.getNumerador());
-	            Numero nuevoNumerador = nuevoNumerador1.mas(nuevoNumerador2);
-	            return nuevoNumerador.dividido(nuevoDenominador);
-            }
-            else if (sumando is Entero)
-	        {
-	            Entero sumandoComoEntero = (Entero)sumando;
-	            Entero nuevoNumerador = (Entero) denominador.por(sumandoComoEntero).mas(numerador);
-	            
-	            return dividir(nuevoNumerador, denominador);
-            }
-            else 
-                throw new SystemException();
-	        
+
+        private Numero sumarNumero(Entero sumando)
+        {
+            Entero nuevoNumerador = (Entero)denominador.por(sumando).mas(numerador);
+            return dividir(nuevoNumerador, denominador);
         }
-	
-	    override public Numero por(Numero multiplicador) {
-            Fraccion multiplicadorComoFraccion = (Fraccion)multiplicador;
-            return numerador.por(multiplicadorComoFraccion.getNumerador()).
-                dividido(denominador.por(multiplicadorComoFraccion.getDenominador()));
+
+        private Numero sumarNumero(Fraccion sumando)
+        {
+            Numero nuevoDenominador = denominador.por(sumando.getDenominador());
+            Numero nuevoNumerador1 = numerador.por(sumando.getDenominador());
+            Numero nuevoNumerador2 = denominador.por(sumando.getNumerador());
+            Numero nuevoNumerador = nuevoNumerador1.mas(nuevoNumerador2);
+            return nuevoNumerador.dividido(nuevoDenominador);
         }
-	
-	    override public Numero dividido(Numero divisor) {
-            Fraccion divisorComoFraccion = (Fraccion)divisor;
-            return numerador.por(divisorComoFraccion.getDenominador()).
-                dividido(denominador.por(divisorComoFraccion.getNumerador()));
+        public override Numero mas(Numero sumando) {
+            dynamic a = Convert.ChangeType(sumando, sumando.GetType());
+            return sumarNumero(a);
+        }
+        private Numero porNumero(Fraccion multiplicador)
+        {
+            return numerador.por(multiplicador.getNumerador())
+                .dividido(denominador.por(multiplicador.getDenominador()));
+        }
+        private Numero porNumero(Entero multiplicador)
+        {
+            return numerador.por(multiplicador).dividido(denominador);
+        }
+
+        public override Numero por(Numero multiplicador)
+        {
+            dynamic a = Convert.ChangeType(multiplicador, multiplicador.GetType());
+            return porNumero(a);
+        }
+
+        private Numero divididoNumero(Fraccion divisor)
+        {
+            return numerador.por(divisor.getDenominador()).
+                dividido(denominador.por(divisor.getNumerador()));
+        }
+        private Numero divididoNumero(Entero divisor)
+        {
+            return numerador.dividido(denominador.por(divisor));
+        }
+
+
+        public override Numero dividido(Numero divisor)
+        {
+            dynamic a = Convert.ChangeType(divisor, divisor.GetType());
+            return divididoNumero(a);
         }
 
     }

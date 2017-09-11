@@ -16,32 +16,50 @@ namespace C1_Numero_SolucionParcial_SinIf
 	    public int getValue(){
 		    return value;
 	    }
-	
-	    override public Numero mas(Numero sumando) {
-            if (sumando is Entero) 
-                return new Entero(value + ((Entero) sumando).getValue());
-            else if (sumando is Fraccion)
-            {
-                Numero nuevoNumerador = this.por(((Fraccion) sumando).getDenominador().mas(((Fraccion)sumando).getNumerador()));
-                return Fraccion.dividir((Entero) nuevoNumerador, ((Fraccion) sumando).getDenominador());
-            }
-            else 
-               throw new SystemException();
+
+        private Numero sumarNumero(Entero sumando)
+        {
+            return new Entero(value + sumando.getValue());
         }
 
-	    override public Numero por(Numero multiplicador) {
-            if (multiplicador is Entero)
-                return new Entero(value * ((Entero) multiplicador).getValue());
-            else if (multiplicador is Fraccion)
-            {
-                return Fraccion.dividir((Entero)((Fraccion) multiplicador).getNumerador().por(this), ((Fraccion) multiplicador).getDenominador());
-            }
-            else
-                throw new SystemException();
+        private Numero sumarNumero(Fraccion sumando)
+        {
+            Numero nuevoNumerador = this.por(sumando.getDenominador().mas(sumando.getNumerador()));
+            return Fraccion.dividir((Entero)nuevoNumerador, sumando.getDenominador());
         }
-	
-        override public Numero dividido(Numero divisor) {
-            return Fraccion.dividir(this, (Entero) divisor);
+        public override Numero mas(Numero sumando)
+        {
+            dynamic a = Convert.ChangeType(sumando, sumando.GetType());
+            return sumarNumero(a);
+        }
+
+        private Numero porNumero(Fraccion multiplicador)
+        {
+            return Fraccion.dividir((Entero)multiplicador.getNumerador().por(this), multiplicador.getDenominador());
+        }
+        private Numero porNumero(Entero multiplicador)
+        {
+            return new Entero(value * (multiplicador).getValue());
+        }
+        public override Numero por(Numero multiplicador)
+        {
+            dynamic a = Convert.ChangeType(multiplicador, multiplicador.GetType());
+            return porNumero(a);
+        }
+
+        private Numero divididoNumero(Fraccion divisor)
+        {
+            return Fraccion.dividir(new Entero(value * divisor.getDenominador().value), divisor.getNumerador());
+        }
+        private Numero divididoNumero(Entero divisor)
+        {
+            return Fraccion.dividir(this,divisor);
+        }
+
+        public override Numero dividido(Numero divisor)
+        {
+            dynamic a = Convert.ChangeType(divisor, divisor.GetType());
+            return divididoNumero(a);
         }
 	
         public Entero maximoComunDivisorCon(Entero otroEntero)
