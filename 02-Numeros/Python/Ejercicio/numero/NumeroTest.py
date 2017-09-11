@@ -151,7 +151,7 @@ class NumeroTest(unittest.TestCase):
         return Entero(3)
 
     def createCuatro(self):
-        return Enterom(4)
+        return Entero(4)
 
     def createCinco(self):
         return Entero(5)
