@@ -54,8 +54,17 @@ class Entero(Numero):
     def __add__(self, sumando):
         return sumando.sumarEntero(self)
 
+    def __mul__(self, factor):
+        return factor.multiplicarEntero(self)
+
+    def __div__(self, divisor):
+        return divisor.dividirEntero(self)
+
     def sumarEntero(self, sumando):
         return Entero(self._valor + sumando.valor())
+
+    def sumarFraccion(self, sumando):
+        return sumando.sumarEntero(self)
 
     def multiplicarEntero(self, sumando):
         return Entero(self._valor * sumando.valor())
@@ -63,11 +72,8 @@ class Entero(Numero):
     def multiplicarFraccion(self, sumando):
         return sumando.multiplicarEntero(self)
 
-    def __mul__(self, factor):
-        return factor.multiplicarEntero(self)
-
-    def __div__(self, divisor):
-        return divisor.dividirEntero(self)
+    def divisionEntera(self, divisorEntero):
+        return Entero(self._valor / divisorEntero.valor())
 
     def dividirEntero(self, dividendo):
         if self.esCero():
@@ -85,12 +91,6 @@ class Entero(Numero):
             return numerador
 
         return Fraccion(numerador, denominador)
-
-    def sumarFraccion(self, sumando):
-        return sumando.sumarEntero(self)
-
-    def divisionEntera(self, divisorEntero):
-        return Entero(self._valor / divisorEntero.valor())
 
     def dividirFraccion(self, dividendo):
         return dividendo.numerador() / (dividendo.denominador() * self)
@@ -140,6 +140,9 @@ class Fraccion(Numero):
     def __div__(self, divisor):
         return divisor.dividirFraccion(self)
 
+    def sumarEntero(self, sumando):
+        return (self.numerador() + (sumando * self.denominador())) / self.denominador()
+
     def sumarFraccion(self, sumando):
         nuevoDenominador = self._denominador * sumando.denominador()
         primerSumando = self._numerador * sumando.denominador()
@@ -148,20 +151,17 @@ class Fraccion(Numero):
 
         return nuevoNumerador / nuevoDenominador
 
-    def dividirFraccion(self, dividendo):
-        return (dividendo.numerador() * self._denominador) / (dividendo.denominador() * self._numerador)
+    def multiplicarEntero(self, factor):
+        return (self.numerador() * factor) / self.denominador()
 
     def multiplicarFraccion(self, factor):
         return (self._numerador * factor.numerador()) / (self._denominador * factor.denominador())
 
-    def sumarEntero(self, sumando):
-        return (self.numerador() + (sumando * self.denominador())) / self.denominador()
-
-    def multiplicarEntero(self, factor):
-        return (self.numerador() * factor) / self.denominador()
-
     def dividirEntero(self, dividendo):
         return dividendo * (self.denominador() / self.numerador())
+
+    def dividirFraccion(self, dividendo):
+        return (dividendo.numerador() * self._denominador) / (dividendo.denominador() * self._numerador)
 
 
 class NumeroTest(unittest.TestCase):
