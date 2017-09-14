@@ -66,11 +66,11 @@ class Entero(Numero):
     def sumarFraccion(self, sumando):
         return sumando.sumarEntero(self)
 
-    def multiplicarEntero(self, sumando):
-        return Entero(self._valor * sumando.valor())
+    def multiplicarEntero(self, factor):
+        return Entero(self._valor * factor.valor())
 
-    def multiplicarFraccion(self, sumando):
-        return sumando.multiplicarEntero(self)
+    def multiplicarFraccion(self, factor):
+        return factor.multiplicarEntero(self)
 
     def divisionEntera(self, divisorEntero):
         return Entero(self._valor / divisorEntero.valor())
