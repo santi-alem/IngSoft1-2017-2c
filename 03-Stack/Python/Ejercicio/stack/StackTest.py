@@ -11,34 +11,90 @@
 import unittest
 
 
+class Cointainer:
+    def push(self, anObject):
+        self.shouldBeImplementedBySubclass()
+
+    def top(self):
+        self.shouldBeImplementedBySubclass()
+
+    def pop(self):
+        self.shouldBeImplementedBySubclass()
+
+    def isEmpty(self):
+        self.shouldBeImplementedBySubclass()
+
+    def shouldBeImplementedBySubclass(self):
+        raise NotImplemented("Subclass task to implement")
+
+
+class StackContainer(Cointainer):
+    def __init__(self, anObject, previousContainer):
+        self._cointainedObject = anObject
+        self._previousObject = previousContainer
+
+    def push(self, anObject):
+        return StackContainer(anObject, self)
+
+    def pop(self):
+        return self._previousObject
+
+    def top(self):
+        return self._cointainedObject
+
+    def size(self):
+        return self._previousObject.size() + 1
+
+    def isEmpty(self):
+        return False
+
+
+class EmptyStackContainer(Cointainer):
+    def push(self, anObject):
+        return StackContainer(anObject, self)
+
+    def pop(self):
+        raise self.stackIsEmpty()
+
+    def top(self):
+        raise self.stackIsEmpty()
+
+    def stackIsEmpty(self):
+        return Exception(Stack.STACK_EMPTY_DESCRIPTION)
+
+    def isEmpty(self):
+        return True
+
+    def size(self):
+        return 0
+
+
 class Stack:
     def __init__(self):
         self.items = []
+        self.topObject = EmptyStackContainer()
 
     STACK_EMPTY_DESCRIPTION = 'Stack is empty'
 
     def push(self, anObject):
-        self.items.append(anObject)
+        self.topObject = self.topObject.push(anObject)
 
     def pop(self):
-        if self.isEmpty():
-            raise self.stackIsEmpty()
-        return self.items.pop(-1)
+        container = self.topObject
+        self.topObject = container.pop()
+        return container.top()
 
     def top(self):
-        if self.isEmpty():
-            raise self.stackIsEmpty()
-        return self.items[-1]
+        return self.topObject.top()
 
     def isEmpty(self):
-        return self.size() == 0
+        return self.topObject.isEmpty()
 
     def size(self):
-        return len(self.items)
+        return self.topObject.size()
 
     def stackIsEmpty(self):
         return Exception(self.STACK_EMPTY_DESCRIPTION)
-
 
 
 class StackTest(unittest.TestCase):
