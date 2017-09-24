@@ -1,0 +1,11 @@
+C:\Documents and Settings\hernan\Mis documentos\Visual Studio 2010\Projects\C1-Stack-Exercise.dll
+C:\Documents and Settings\hernan\Mis documentos\Visual Studio 2010\Projects\C1-Stack-Exercise.pdb
+I:\C1-Stack-Exercise\C1-Stack-Exercise\obj\Debug\ResolveAssemblyReference.cache
+I:\C1-Stack-Exercise\C1-Stack-Exercise\obj\Debug\C1-Stack-Exercise.dll
+I:\C1-Stack-Exercise\C1-Stack-Exercise\obj\Debug\C1-Stack-Exercise.pdb
+C:\Users\PeterMatt\Desktop\IngenieriaS\03-Stack\C#\Ejercicio\C1-Stack-Exercise\obj\Debug\C1-Stack-Exercise.csprojResolveAssemblyReference.cache
+C:\Users\PeterMatt\Desktop\IngenieriaS\03-Stack\C#\Ejercicio\C1-Stack-Exercise\obj\Debug\C1-Stack-Exercise.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\03-Stack\C#\Ejercicio\C1-Stack-Exercise\obj\Debug\C1-Stack-Exercise.pdb
+C:\Users\PeterMatt\Desktop\IngenieriaS\03-Stack\C#\Ejercicio\C1-Stack-Exercise\C1-Stack-Exercise.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\03-Stack\C#\Ejercicio\C1-Stack-Exercise\C1-Stack-Exercise.pdb
+C:\Users\PeterMatt\Desktop\IngenieriaS\03-Stack\C#\Ejercicio\C1-Stack-Exercise\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
