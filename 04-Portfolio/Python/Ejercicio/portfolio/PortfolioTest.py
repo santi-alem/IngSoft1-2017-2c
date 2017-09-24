@@ -72,24 +72,33 @@ class ReceptiveAccount(SummarizingAccount):
 
 
 class Portfolio(SummarizingAccount):
+    def __init__(self):
+        self._accounts = []
+
     def balance(self):
-        raise NotImplementedError()
+        return reduce(lambda balance, account: balance + account.balance(), self._accounts, 0)
 
     def hasRegistered(self, transaction):
-        raise NotImplementedError()
+        return any([account.hasRegistered(transaction) for account in self._accounts])
 
     def manages(self, anAccount):
-        raise NotImplementedError()
+        # estaria preguntando si esta en las cuentas que maneja el portfolio o en alguna de las cuentas de mis portfolios
+        return (anAccount in self._accounts) or any([account.manages(anAccount) for account in self._accounts])
 
     def transactions(self):
-        raise NotImplementedError()
+        return reduce(lambda transactions, account: transactions + account.transactions(), self._accounts, [])
 
     def addAccount(self, account):
-        raise NotImplementedError()
+        if self.manages(account):
+            raise Exception("La cuenta ya esta manejada por otro portfolio")
+        self._accounts.append(account)
 
     @classmethod
     def createWith(cls, anAccount, anotherAccount):
-        raise NotImplementedError()
+        portfolio = Portfolio()
+        portfolio.addAccount(anAccount)
+        portfolio.addAccount(anotherAccount)
+        return portfolio
 
     ACCOUNT_ALREADY_MANAGED = "La cuenta ya esta manejada por otro portfolio"
 
