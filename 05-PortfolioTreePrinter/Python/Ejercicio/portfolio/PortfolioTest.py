@@ -10,9 +10,14 @@
 import unittest
 from copy import copy
 
+import itertools
+
 
 class AccountTransaction:
     def value(self):
+        pass
+
+    def balance(self):
         pass
 
     def __add__(self, other):
@@ -22,6 +27,9 @@ class AccountTransaction:
     def registerForOn(cls, value, account):
         return account.register(cls(value))
 
+    def __str__(self):
+        pass
+
 
 class Deposit(AccountTransaction):
     def __init__(self, value):
@@ -30,8 +38,15 @@ class Deposit(AccountTransaction):
     def value(self):
         return self._value
 
+    def balance(self):
+        return self._value
+
     def __add__(self, other):
         return other + self._value
+
+    def __str__(self):
+        descripcion = "Transferencia por " if TransferRegister.isFromTransfer(self) else "Deposito por "
+        return descripcion + str(self.value())
 
 
 class Withdraw(AccountTransaction):
@@ -41,8 +56,15 @@ class Withdraw(AccountTransaction):
     def value(self):
         return self._value
 
+    def balance(self):
+        return -self._value
+
     def __add__(self, other):
         return other - self.value()
+
+    def __str__(self):
+        descripcion = "Transferencia por -" if TransferRegister.isFromTransfer(self) else "Extraccion por "
+        return descripcion + str(self.value())
 
 
 class Transfer:
@@ -53,8 +75,9 @@ class Transfer:
 
     @classmethod
     def registerFor(cls, value, fromAccount, toAccount):
-        Withdraw.registerForOn(value, fromAccount)
-        Deposit.registerForOn(value, toAccount)
+        withdraw = Withdraw.registerForOn(value, fromAccount)
+        deposit = Deposit.registerForOn(value, toAccount)
+        TransferRegister.register(cls(value, fromAccount, toAccount), withdraw, deposit)
 
 
 class SummarizingAccount:
@@ -70,13 +93,16 @@ class SummarizingAccount:
     def transactions(self):
         pass
 
+    def buildTree(self, names, level):
+        pass
+
 
 class ReceptiveAccount(SummarizingAccount):
     def __init__(self):
         self._transactions = []
 
     def balance(self):
-        return reduce(lambda balance, transaction: transaction + balance, self._transactions, 0)
+        return reduce(lambda balance, transaction: balance + transaction.balance(), self._transactions, 0)
 
     def register(self, aTransaction):
         self._transactions.append(aTransaction)
@@ -91,6 +117,9 @@ class ReceptiveAccount(SummarizingAccount):
     def transactions(self):
         return copy(self._transactions)
 
+    def buildTree(self, names, level):
+        return [level + names[self]]
+
 
 class Portfolio(SummarizingAccount):
     def __init__(self):
@@ -98,7 +127,7 @@ class Portfolio(SummarizingAccount):
 
     def balance(self):
         # return reduce(
-        #              lambda balance,account: balance+account.balance(), 
+        #              lambda balance,account: balance+account.balance(),
         #              self._accounts, 0)
         # return sum(map(lambda account: account.balance(), self._accounts))
         return sum(account.balance() for account in self._accounts)
@@ -133,6 +162,14 @@ class Portfolio(SummarizingAccount):
         portfolio.addAccount(anotherAccount)
         return portfolio
 
+    def buildTree(self, names, level=None):
+        level = level or ""
+        tree = [level + names[self]]
+        level = level + " "
+        for i in self._accounts:
+            tree = tree + i.buildTree(names, level)
+        return tree
+
     ACCOUNT_ALREADY_MANAGED = "La cuenta ya esta manejada por otro portfolio"
 
 
@@ -141,6 +178,9 @@ class CertificateOfDeposit(AccountTransaction):
         self._value = value
         self._numberOfDays = numberOfDays
         self._tna = tna
+
+    def balance(self):
+        return 0
 
     def value(self):
         return self._value
@@ -159,7 +199,81 @@ class CertificateOfDeposit(AccountTransaction):
         certificateOfDeposit = cls(value, numberOfDays, tna)
         account.register(certificateOfDeposit)
 
+        withdraw = Withdraw.registerForOn(value, account)
+        CertificateOfDepositRegister.registerWithdrawFromCertificateOfDeposit(withdraw)
+
         return certificateOfDeposit
+
+    def __str__(self):
+        return "Plazo fijo por {} durante {} dias a una tna de {}".format(self.value(), self.numberOfDays(),
+                                                                          self.tna())
+
+    def __add__(self, other):
+        return other + self._value
+
+
+class CertificateOfDepositRegister:
+    _certificatesOfDeposit = []
+
+    @classmethod
+    def transaction_balance(cls, transfer_transactions):
+        return reduce(lambda net, transaction: transaction + net, transfer_transactions, 0)
+
+    @classmethod
+    def investentsValueFor(cls, account):
+        certificates = filter(lambda transaction: isinstance(transaction, CertificateOfDeposit), account.transactions())
+        return cls.transaction_balance(certificates)
+
+    @classmethod
+    def registerWithdrawFromCertificateOfDeposit(cls, transaction):
+        cls._certificatesOfDeposit.append(transaction)
+
+    @classmethod
+    def isFromCertificate(cls, transaction):
+        return transaction in cls._certificatesOfDeposit
+
+    @classmethod
+    def accountEarnings(cls, account):
+        certificates = filter(lambda transaction: isinstance(transaction, CertificateOfDeposit), account.transactions())
+        return reduce(lambda earnings, certificate: earnings + certificate.earnings(), certificates, 0)
+
+    @classmethod
+    def accountSummaryLog(cls, account):
+        transactions = filter(lambda transaction: not cls.isFromCertificate(transaction), account.transactions())
+        return [str(transactions) for transactions in transactions]
+
+
+class PortfolioTree:
+    @classmethod
+    def buildTree(cls, portfolio, names):
+        return portfolio.buildTree(names)
+
+    @classmethod
+    def buildReverseTree(cls, composedPortfolio, accountNames):
+        return list(reversed(cls.buildTree(composedPortfolio, accountNames)))
+
+
+class TransferRegister:
+    _transfers = {}
+
+    @classmethod
+    def register(cls, transfer, withdraw, deposit):
+        cls._transfers[withdraw] = transfer
+        cls._transfers[deposit] = transfer
+
+    @classmethod
+    def isFromTransfer(cls, transaction):
+        return transaction in cls._transfers.keys()
+
+    @classmethod
+    def transferNet(cls, account):
+        transfer_transactions = filter(lambda transaction: cls.isFromTransfer(transaction),
+                                       [i for i in account.transactions()])
+        return cls.transaction_balance(transfer_transactions)
+
+    @classmethod
+    def transaction_balance(cls, transfer_transactions):
+        return reduce(lambda net, transaction: transaction + net, transfer_transactions, 0)
 
 
 class PortfolioTests(unittest.TestCase):
@@ -350,7 +464,7 @@ class PortfolioTests(unittest.TestCase):
         self.assertEquals("Transferencia por -100", lines[2])
 
     def accountSummaryLines(self, fromAccount):
-        pass
+        return CertificateOfDepositRegister.accountSummaryLog(fromAccount)
 
     def test20ShouldBeAbleToBeQueryTransferNet(self):
         fromAccount = ReceptiveAccount()
@@ -365,7 +479,7 @@ class PortfolioTests(unittest.TestCase):
         self.assertEquals(-150.0, self.accountTransferNet(toAccount))
 
     def accountTransferNet(self, account):
-        pass
+        return TransferRegister.transferNet(account)
 
     def test21CertificateOfDepositShouldWithdrawInvestmentValue(self):
         account = ReceptiveAccount()
@@ -380,7 +494,7 @@ class PortfolioTests(unittest.TestCase):
         self.assertEquals(750.0, account.balance())
 
     def investmentNet(self, account):
-        pass
+        return CertificateOfDepositRegister.investentsValueFor(account)
 
     def test22ShouldBeAbleToQueryInvestmentEarnings(self):
         account = ReceptiveAccount()
@@ -393,7 +507,7 @@ class PortfolioTests(unittest.TestCase):
         self.assertEquals(investmentEarnings, self.investmentEarnings(account))
 
     def investmentEarnings(self, account):
-        pass
+        return CertificateOfDepositRegister.accountEarnings(account)
 
     def test23AccountSummaryShouldWorkWithCertificateOfDeposit(self):
         fromAccount = ReceptiveAccount()
@@ -449,7 +563,7 @@ class PortfolioTests(unittest.TestCase):
         self.assertEquals(" account3", lines[4])
 
     def portofolioTreeOf(self, composedPortfolio, accountNames):
-        pass
+        return PortfolioTree.buildTree(composedPortfolio, accountNames)
 
     def test26ReversePortfolioTreePrinter(self):
         account1 = ReceptiveAccount()
@@ -475,4 +589,4 @@ class PortfolioTests(unittest.TestCase):
         self.assertEquals("composedPortfolio", lines[4])
 
     def reversePortofolioTreeOf(self, composedPortfolio, accountNames):
-        pass
+        return PortfolioTree.buildReverseTree(composedPortfolio, accountNames)
