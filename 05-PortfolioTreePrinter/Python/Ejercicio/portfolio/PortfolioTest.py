@@ -10,8 +10,6 @@
 import unittest
 from copy import copy
 
-import itertools
-
 
 class AccountTransaction:
     def value(self):
