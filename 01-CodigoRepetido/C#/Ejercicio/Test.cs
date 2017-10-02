@@ -14,22 +14,21 @@ namespace IdiomExercise
             return afterRunning.Subtract(beforeRunning).TotalMilliseconds;
         }
 
-        private double TimerClassFunction(Action classFunctionToTest)
+        private void FunctionShouldTakeLessThan(Action customerFunctionToTime, int timeLimit)
         {
             DateTime timeBeforeRunning = DateTime.Now;
-            classFunctionToTest();
+            customerFunctionToTime();
             DateTime timeAfterRunning = DateTime.Now;
 
-            return DurationInMiliseconds(timeBeforeRunning, timeAfterRunning);
+            double duration = DurationInMiliseconds(timeBeforeRunning, timeAfterRunning);
+            Assert.IsTrue(duration < timeLimit);
         }
         [TestMethod]
         public void AddingCustomerShouldNotTakeMoreThan50Milliseconds()
         {
             CustomerBook customerBook = new CustomerBook();
 
-            double testDuration = TimerClassFunction( () => customerBook.addCustomerNamed("paulMcCartney"));
-
-            Assert.IsTrue(testDuration < 50);
+            FunctionShouldTakeLessThan( () => customerBook.addCustomerNamed("paulMcCartney"), 50);
         }
 
         [TestMethod]
@@ -40,41 +39,43 @@ namespace IdiomExercise
 
             customerBook.addCustomerNamed(paulMcCartney);
 
-            double testDuration = TimerClassFunction(() => customerBook.removeCustomerNamed(paulMcCartney));
+            FunctionShouldTakeLessThan(() => customerBook.removeCustomerNamed(paulMcCartney), 100);
 
-            Assert.IsTrue(testDuration < 100);
         }
 
         [TestMethod]
         public void CanNotAddACustomerWithEmptyName()
         {
             CustomerBook customerBook = new CustomerBook();
-            GenerateExceptionWithCustomerBookMethod<Exception>(() => customerBook.addCustomerNamed(""), customerBook, CustomerBook.CUSTOMER_NAME_EMPTY);
+            shouldThrowWithExceptionDo<Exception>(() => customerBook.addCustomerNamed(""),
+                (exceptionMessage) => CheckErrorMessageAndEmptyCustomer(CustomerBook.CUSTOMER_NAME_EMPTY, customerBook, exceptionMessage));
         }
 
         [TestMethod]
         public void CanNotRemoveNotAddedCustomer()
         {
             CustomerBook customerBook = new CustomerBook();
-            GenerateExceptionWithCustomerBookMethod<InvalidOperationException>(() => customerBook.removeCustomerNamed("John Lennon"), customerBook, CustomerBook.INVALID_CUSTOMER_NAME);
+            shouldThrowWithExceptionDo<InvalidOperationException>(() => customerBook.removeCustomerNamed("John Lennon"), 
+                (exception) => CheckErrorMessageAndEmptyCustomer(CustomerBook.INVALID_CUSTOMER_NAME, customerBook, exception));
         }
 
-        private void CheckErrorMessageAndEmptyCustomer(String message, String errorCode, CustomerBook customerBook)
+        private void CheckErrorMessageAndEmptyCustomer(String expectedMessage, CustomerBook customerBook, Exception exception)
         {
-            Assert.AreEqual(message, errorCode);
+            Assert.AreEqual(expectedMessage, exception.Message);
             Assert.IsTrue(customerBook.isEmpty());
         }
 
-        private void GenerateExceptionWithCustomerBookMethod<T>(Action classFunctionToTest, CustomerBook customerBook, String excpectedMessage) where T : Exception
+
+        private void shouldThrowWithExceptionDo<T>(Action customerFunctionShouldFail, Action<T> exceptionAssertionBlock) where T : Exception 
         {
             try
             {
-                classFunctionToTest();
+                customerFunctionShouldFail();
                 Assert.Fail();
             }
             catch (T e)
             {
-                CheckErrorMessageAndEmptyCustomer(e.Message, excpectedMessage, customerBook);
+                exceptionAssertionBlock(e);
             }
             
         }

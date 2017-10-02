@@ -1,0 +1,6 @@
+C:\Users\PeterMatt\Desktop\IngenieriaS\04-Portfolio\C#\Ejercicio\Ejercicio\Patterns-Portfolio-Exercise-WithAccountImplementation\bin\Debug\Patterns-Portfolio-Exercise-WithAccountImplementation.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\04-Portfolio\C#\Ejercicio\Ejercicio\Patterns-Portfolio-Exercise-WithAccountImplementation\bin\Debug\Patterns-Portfolio-Exercise-WithAccountImplementation.pdb
+C:\Users\PeterMatt\Desktop\IngenieriaS\04-Portfolio\C#\Ejercicio\Ejercicio\Patterns-Portfolio-Exercise-WithAccountImplementation\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\04-Portfolio\C#\Ejercicio\Ejercicio\Patterns-Portfolio-Exercise-WithAccountImplementation\obj\Debug\Patterns-Portfolio-Exercise-WithAccountImplementation.csprojResolveAssemblyReference.cache
+C:\Users\PeterMatt\Desktop\IngenieriaS\04-Portfolio\C#\Ejercicio\Ejercicio\Patterns-Portfolio-Exercise-WithAccountImplementation\obj\Debug\Patterns-Portfolio-Exercise-WithAccountImplementation.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\04-Portfolio\C#\Ejercicio\Ejercicio\Patterns-Portfolio-Exercise-WithAccountImplementation\obj\Debug\Patterns-Portfolio-Exercise-WithAccountImplementation.pdb

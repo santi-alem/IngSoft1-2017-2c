@@ -1,0 +1,5 @@
+C:\Documents and Settings\hernan\Mis documentos\Visual Studio 2010\Projects\C1-Numero-SolucionFinal-UsandoNumero.dll
+C:\Documents and Settings\hernan\Mis documentos\Visual Studio 2010\Projects\C1-Numero-SolucionFinal-UsandoNumero.pdb
+I:\C1-Numero-SolucionFinal-UsandoNumero\C1-Numero-SolucionFinal-UsandoNumero\obj\Debug\ResolveAssemblyReference.cache
+I:\C1-Numero-SolucionFinal-UsandoNumero\C1-Numero-SolucionFinal-UsandoNumero\obj\Debug\C1-Numero-SolucionFinal-UsandoNumero.dll
+I:\C1-Numero-SolucionFinal-UsandoNumero\C1-Numero-SolucionFinal-UsandoNumero\obj\Debug\C1-Numero-SolucionFinal-UsandoNumero.pdb

@@ -3,3 +3,6 @@ C:\Documents and Settings\hernan\Mis documentos\Visual Studio 2010\Projects\C1-I
 C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\obj\Debug\IdiomExercise.csprojResolveAssemblyReference.cache
 C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\obj\Debug\IdiomExercise.dll
 C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\obj\Debug\IdiomExercise.pdb
+C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\IdiomExercise.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\IdiomExercise.pdb
+C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
