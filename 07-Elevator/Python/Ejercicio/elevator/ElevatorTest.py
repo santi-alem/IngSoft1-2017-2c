@@ -12,8 +12,6 @@ import unittest
 
 class ElevatorController:
     def __init__(self):
-        self._floor_queue = []
-        self._floor_number = 0
         self.state = ElevatorIdleState()
 
     def isIdle(self):
@@ -26,13 +24,12 @@ class ElevatorController:
         return self.state.isCabinDoorOpened()
 
     def cabinFloorNumber(self):
-        return self._floor_number
+        return self.state._floor_number
 
     def isElevatorDoorOpening(self):
         return self.state.isElevatorDoorOpening()
 
     def goUpPushedFromFloor(self, floor):
-        self._floor_queue.append(floor)
         return self.state.goUpPushedFromFloor(floor)
 
     def isWorking(self):
@@ -55,9 +52,6 @@ class ElevatorController:
 
     def cabinOnFloor(self, floor):
         self.state.cabinOnFloor(floor)
-        if floor != self._floor_number + 1:
-            raise ElevatorEmergency("Sensor de cabina desincronizado")
-        self._floor_number = floor
 
     def cabinDoorOpened(self):
         self.state.cabinDoorOpened()
@@ -78,6 +72,7 @@ class ElevatorController:
 class ElevatorState:
     def __init__(self):
         self.nextStates = []
+        self._floor_number = 0
 
     def isIdle(self):
         pass
@@ -210,6 +205,9 @@ class ElevatorMovingState(ElevatorState):
         return False
 
     def cabinOnFloor(self, floor):
+        if floor != self._floor_number + 1:
+            raise ElevatorEmergency("Sensor de cabina desincronizado")
+
         self._floor_number = floor
         self.__class__ = ElevatorOpeningDoorState
 
