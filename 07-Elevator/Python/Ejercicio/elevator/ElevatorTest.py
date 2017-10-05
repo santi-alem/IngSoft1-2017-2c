@@ -134,6 +134,7 @@ class ElevatorState:
         pass
 
     def nextState(self):
+        ## Hago esto por que en python2.7 no hay safe pop
         return self.nextStates.pop() if self.nextStates else ElevatorIdleState
 
 
