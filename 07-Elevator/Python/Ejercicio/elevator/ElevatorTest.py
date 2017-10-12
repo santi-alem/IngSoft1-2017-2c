@@ -69,6 +69,41 @@ class ElevatorController:
         self.state.closeCabinDoor()
 
 
+class ElevatorFutureStates:
+    def addState(self, state):
+        pass
+
+    def nextState(self):
+        pass
+
+
+class FutureState(ElevatorFutureStates):
+    def __init__(self, state, next_state):
+        self.next_state = next_state
+        self.state = state
+
+    def addState(self, state):
+        self.next_state = self.next_state.addState(state)
+        return self
+
+    def nextState(self):
+        return self.next_state
+
+    def currentState(self):
+        return self.state
+
+
+class EmptyState(ElevatorFutureStates):
+    def addState(self, state):
+        return FutureState(state, self)
+
+    def nextState(self):
+        return self
+
+    def currentState(self):
+        return ElevatorIdle
+
+
 class ElevatorState:
     def __init__(self):
         self.nextStates = EmptyState()
@@ -133,41 +168,6 @@ class ElevatorState:
         state = self.nextStates.currentState()
         self.nextStates = self.nextStates.nextState()
         return state
-
-
-class ElevatorFutureStates:
-    def addState(self, state):
-        pass
-
-    def nextState(self):
-        pass
-
-
-class FutureState(ElevatorFutureStates):
-    def __init__(self, state, next_state):
-        self.next_state = next_state
-        self.state = state
-
-    def addState(self, state):
-        self.next_state = self.next_state.addState(state)
-        return self
-
-    def nextState(self):
-        return self.next_state
-
-    def currentState(self):
-        return self.state
-
-
-class EmptyState(ElevatorFutureStates):
-    def addState(self, state):
-        return FutureState(state, self)
-
-    def nextState(self):
-        return self
-
-    def currentState(self):
-        return ElevatorIdle
 
 
 class ElevatorIdle(ElevatorState):
