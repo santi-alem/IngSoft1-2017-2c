@@ -12,7 +12,7 @@ import unittest
 
 class ElevatorController:
     def __init__(self):
-        self.state = ElevatorIdleState()
+        self.state = ElevatorIdle()
 
     def isIdle(self):
         return self.state.isIdle()
@@ -71,7 +71,7 @@ class ElevatorController:
 
 class ElevatorState:
     def __init__(self):
-        self.nextStates = []
+        self.nextStates = EmptyState()
         self._floor_number = 0
 
     def isIdle(self):
@@ -87,7 +87,7 @@ class ElevatorState:
         pass
 
     def goUpPushedFromFloor(self, floor):
-        self.nextStates.append(ElevatorWaitingPeopleWithOpenDoors)
+        self.nextStates = self.nextStates.addState(ElevatorWaitingPeopleWithOpenDoors)
 
     def isWorking(self):
         pass
@@ -130,10 +130,47 @@ class ElevatorState:
 
     def nextState(self):
         ## Hago esto por que en python2.7 no hay safe pop
-        return self.nextStates.pop() if self.nextStates else ElevatorIdleState
+        state = self.nextStates.currentState()
+        self.nextStates = self.nextStates.nextState()
+        return state
 
 
-class ElevatorIdleState(ElevatorState):
+class ElevatorFutureStates:
+    def addState(self, state):
+        pass
+
+    def nextState(self):
+        pass
+
+
+class FutureState(ElevatorFutureStates):
+    def __init__(self, state, next_state):
+        self.next_state = next_state
+        self.state = state
+
+    def addState(self, state):
+        self.next_state = self.next_state.addState(state)
+        return self
+
+    def nextState(self):
+        return self.next_state
+
+    def currentState(self):
+        return self.state
+
+
+class EmptyState(ElevatorFutureStates):
+    def addState(self, state):
+        return FutureState(state, self)
+
+    def nextState(self):
+        return self
+
+    def currentState(self):
+        return ElevatorIdle
+
+
+class ElevatorIdle(ElevatorState):
     def isIdle(self):
         return True
 
@@ -144,13 +181,13 @@ class ElevatorIdleState(ElevatorState):
         return True
 
     def goUpPushedFromFloor(self, floor):
-        self.__class__ = ElevatorClosingDoorsState
+        self.__class__ = ElevatorClosingDoors
 
     def cabinDoorClosed(self):
         raise ElevatorEmergency("Sensor de puerta desincronizado")
 
 
-class ElevatorClosingDoorsState(ElevatorState):
+class ElevatorClosingDoors(ElevatorState):
     def isIdle(self):
         return False
 
@@ -167,10 +204,10 @@ class ElevatorClosingDoorsState(ElevatorState):
         return False
 
     def cabinDoorClosed(self):
-        self.__class__ = ElevatorMovingState
+        self.__class__ = ElevatorMoving
 
     def openCabinDoor(self):
-        self.__class__ = ElevatorOpeningDoorState
+        self.__class__ = ElevatorOpeningDoor
 
     def isCabinMoving(self):
         return False
@@ -179,7 +216,7 @@ class ElevatorClosingDoorsState(ElevatorState):
         return True
 
 
-class ElevatorMovingState(ElevatorState):
+class ElevatorMoving(ElevatorState):
     def isCabinMoving(self):
         return True
 
@@ -209,13 +246,13 @@ class ElevatorMovingState(ElevatorState):
             raise ElevatorEmergency("Sensor de cabina desincronizado")
 
         self._floor_number = floor
-        self.__class__ = ElevatorOpeningDoorState
+        self.__class__ = ElevatorOpeningDoor
 
     def cabinDoorClosed(self):
         raise ElevatorEmergency("Sensor de puerta desincronizado")
 
 
-class ElevatorOpeningDoorState(ElevatorState):
+class ElevatorOpeningDoor(ElevatorState):
     def isCabinStopped(self):
         return True
 
@@ -264,7 +301,7 @@ class ElevatorWaitingPeopleWithOpenDoors(ElevatorState):
         self.closeCabinDoor()
 
     def closeCabinDoor(self):
-        self.__class__ = ElevatorClosingDoorsState
+        self.__class__ = ElevatorClosingDoors
 
 
 class ElevatorEmergency(Exception):
