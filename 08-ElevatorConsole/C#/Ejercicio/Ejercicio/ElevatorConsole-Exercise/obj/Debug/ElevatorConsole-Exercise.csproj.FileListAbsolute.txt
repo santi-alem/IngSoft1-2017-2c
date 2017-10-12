@@ -1,0 +1,14 @@
+H:\Documents\10pines-documents\Capacitacion\C2 - Diseño Avanzado de Software con Objetos II\C#Projects\C2-ElevatorConsole-Exercise\ElevatorConsole-Exercise\bin\Debug\ElevatorConsole-Exercise.dll
+H:\Documents\10pines-documents\Capacitacion\C2 - Diseño Avanzado de Software con Objetos II\C#Projects\C2-ElevatorConsole-Exercise\ElevatorConsole-Exercise\bin\Debug\ElevatorConsole-Exercise.pdb
+H:\Documents\10pines-documents\Capacitacion\C2 - Diseño Avanzado de Software con Objetos II\C#Projects\C2-ElevatorConsole-Exercise\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.csprojResolveAssemblyReference.cache
+H:\Documents\10pines-documents\Capacitacion\C2 - Diseño Avanzado de Software con Objetos II\C#Projects\C2-ElevatorConsole-Exercise\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.dll
+H:\Documents\10pines-documents\Capacitacion\C2 - Diseño Avanzado de Software con Objetos II\C#Projects\C2-ElevatorConsole-Exercise\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.pdb
+C:\Users\Hernan\Documents\Visual Studio 2012\Projects\ElevatorConsole-Exercise.dll
+C:\Users\Hernan\Documents\Visual Studio 2012\Projects\ElevatorConsole-Exercise.pdb
+C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.csprojResolveAssemblyReference.cache
+C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.csproj.CoreCompileInputs.cache
+C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.dll
+C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.pdb
+C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\ElevatorConsole-Exercise.dll
+C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\ElevatorConsole-Exercise.pdb
+C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
