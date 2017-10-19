@@ -10,7 +10,10 @@ def convertToRomanString(aNumberToConvert):
 	elif aNumberToConvert == 5 : 
 		return "V"
 	else:
-		return "VI"
+		aromanString = 'V'
+		for i in range(aNumberToConvert - 5):
+			aromanString += 'I'
+
 	return aromanString
 
 class RomanTest(unittest.TestCase):
@@ -29,7 +32,9 @@ class RomanTest(unittest.TestCase):
 	
 	def testE(self):
 		self.assertEquals(convertToRomanString(5), 'V')
-	
-	def testF(self):
 		self.assertEquals(convertToRomanString(6), 'VI')
+		self.assertEquals(convertToRomanString(7), 'VII')
+		self.assertEquals(convertToRomanString(8), 'VIII')
 
+	def testF(self):
+		self.assertEquals(convertToRomanString)
