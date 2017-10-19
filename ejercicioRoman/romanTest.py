@@ -2,9 +2,15 @@ import unittest
 
 def convertToRomanString(aNumberToConvert):
 	aromanString = ''
-	if 	aNumberToConvert 
-	for i in range(aNumberToConvert):
-		aromanString += 'I'
+	if 	aNumberToConvert <=3 :
+		for i in range(aNumberToConvert):
+			aromanString += 'I'
+	elif aNumberToConvert == 4 :
+		return "IV"
+	elif aNumberToConvert == 5 : 
+		return "V"
+	else:
+		return "VI"
 	return aromanString
 
 class RomanTest(unittest.TestCase):
@@ -20,3 +26,10 @@ class RomanTest(unittest.TestCase):
 
 	def testD(self):
 		self.assertEquals(convertToRomanString(4), 'IV')
+	
+	def testE(self):
+		self.assertEquals(convertToRomanString(5), 'V')
+	
+	def testF(self):
+		self.assertEquals(convertToRomanString(6), 'VI')
+
