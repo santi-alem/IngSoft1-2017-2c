@@ -6,3 +6,4 @@ C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\obj\Debug\
 C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\IdiomExercise.dll
 C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\IdiomExercise.pdb
 C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\01-CodigoRepetido\C#\Ejercicio\obj\Debug\IdiomExercise.csproj.CoreCompileInputs.cache

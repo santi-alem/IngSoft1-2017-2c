@@ -27,15 +27,19 @@ namespace ElevatorConsole_Exercise
             elevatorOutputs.Add(subscriber);
         }
 
-        protected void outputDoorToSubscribers()
+        protected void reportActionToSubscriber(Action<ElevatorInfoSubscirber> actionToReport)
         {
             foreach (ElevatorInfoSubscirber subscriber in elevatorOutputs)
-                subscriber.cabinDoorStateChangedTo(cabinDoorState);
+                actionToReport(subscriber);
         }
-        protected void outputCabinToSubscribers()
+        protected void outputDoorToSubscribers(ElevatorInfoSubscirber subscriber)
         {
-            foreach (ElevatorInfoSubscirber subscriber in elevatorOutputs)
-                subscriber.cabinStateChangedTo(cabinState);
+             subscriber.cabinDoorStateChangedTo(cabinDoorState);
+        }
+        
+        protected void outputCabinToSubscribers(ElevatorInfoSubscirber subscriber)
+        {
+             subscriber.cabinStateChangedTo(cabinState);
         }
         //Elevator state
         private void controllerIsIdle()
@@ -177,7 +181,7 @@ namespace ElevatorConsole_Exercise
             floorsToGo.Add(aFloorNumber);
             controllerIsWorking();
             cabinDoorIsClosing();
-            outputDoorToSubscribers();
+            reportActionToSubscriber(subscriber => outputDoorToSubscribers(subscriber));
         }
 
         public void cabinDoorClosedWhenWorking()
@@ -194,8 +198,8 @@ namespace ElevatorConsole_Exercise
         {
             cabinDoorIsClosed();
             cabinMoving();
-            outputDoorToSubscribers();
-            outputCabinToSubscribers();
+            reportActionToSubscriber(subscriber => outputDoorToSubscribers(subscriber));
+            reportActionToSubscriber(subscriber => outputCabinToSubscribers(subscriber));
         }
 
         public void cabinOnFloorWhenWorking(int aFloorNumber)
@@ -209,8 +213,9 @@ namespace ElevatorConsole_Exercise
                 floorsToGo.Remove(floorsToGo.ElementAt(0));
                 cabinIsStopped();
                 cabinDoorIsOpening();
-                outputCabinToSubscribers();
-                outputDoorToSubscribers();
+                reportActionToSubscriber(subscriber => outputCabinToSubscribers(subscriber));
+                reportActionToSubscriber(subscriber => outputDoorToSubscribers(subscriber));
+                
             }
         }
 
@@ -225,13 +230,13 @@ namespace ElevatorConsole_Exercise
         public void cabinDoorOpenedWhenWorkingAndCabinStopped()
         {
             cabinDoorIsOpened();
-            outputDoorToSubscribers();
+            reportActionToSubscriber(subscriber => outputDoorToSubscribers(subscriber));
             if (hasFloorToGo())
                 cabinIsWaitingForPeople();
             else
                 controllerStateIsIdle();
 
-            outputCabinToSubscribers();
+            reportActionToSubscriber(subscriber => outputCabinToSubscribers(subscriber));
         }
 
         private void controllerStateIsIdle()
@@ -258,7 +263,7 @@ namespace ElevatorConsole_Exercise
         public void openCabinDoorWhenWorkingAndCabinStoppedAndDoorClosing()
         {
             cabinDoorIsOpening();
-            outputDoorToSubscribers();
+            reportActionToSubscriber(subscriber => outputDoorToSubscribers(subscriber));
         }
         public void openCabinDoorWhenWorkingAndCabinMoving()
         {

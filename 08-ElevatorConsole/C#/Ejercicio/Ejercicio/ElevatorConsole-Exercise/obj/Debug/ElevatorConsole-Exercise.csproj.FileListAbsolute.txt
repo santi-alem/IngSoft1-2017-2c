@@ -12,3 +12,10 @@ C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio
 C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\ElevatorConsole-Exercise.dll
 C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\ElevatorConsole-Exercise.pdb
 C:\Users\PeterMatt\Desktop\IngSoftFacu\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.csprojResolveAssemblyReference.cache
+C:\Users\PeterMatt\Desktop\IngenieriaS\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.csproj.CoreCompileInputs.cache
+C:\Users\PeterMatt\Desktop\IngenieriaS\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\obj\Debug\ElevatorConsole-Exercise.pdb
+C:\Users\PeterMatt\Desktop\IngenieriaS\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\ElevatorConsole-Exercise.dll
+C:\Users\PeterMatt\Desktop\IngenieriaS\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\ElevatorConsole-Exercise.pdb
+C:\Users\PeterMatt\Desktop\IngenieriaS\08-ElevatorConsole\C#\Ejercicio\Ejercicio\ElevatorConsole-Exercise\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
