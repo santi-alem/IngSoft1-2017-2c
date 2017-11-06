@@ -1,117 +1,8 @@
-import datetime
-import random
-from unittest.case import TestCase
-
-## Todo: Cambiar esto y pasarlo por catalogo
-BOOK_CATALOG = {}
-SALES_BOOKS = []
+from unittest import TestCase
+from .models import Cart, MerchantProccesorAdapterSpy, Cashier, AlwaysDatedCard, ValidCard, \
+    MerchantProccesorFailingAdapterStub
 
 
-## Cambiar Date
-class CreditCard:
-    def __init__(self, cco, ccn, cced):
-        self.cced = cced
-        self.ccn = ccn
-        self.cco = cco
-
-    def hasExpiredAt(self, date):
-        return self.cced < date
-
-
-def ValidCard():
-    someName = random.choice("aabbcccdde  effgghhii")
-    cardNumber = random.randint(1111111111111111, 9999999999999999)
-    expirationDate = datetime.date.today() + datetime.timedelta(days=365)
-    return CreditCard(someName, cardNumber, expirationDate)
-
-
-def AlwaysDatedCard():
-    someName = random.choice("aabbcccdde  effgghhii")
-    cardNumber = random.randint(1111111111111111, 9999999999999999)
-    today = datetime.date.today()
-    expirationDate = today - datetime.timedelta(days=today.day + 1)
-
-    return CreditCard(someName, cardNumber, expirationDate)
-
-
-class MerchantProccesorAdapter:
-    def debit(self, total, creditCardNumber, creditCardExpiration, creditCardOwner):
-        pass
-
-
-class MerchantProccesorAdapterSpy(MerchantProccesorAdapter):
-    def __init__(self):
-        self.hasCharge = []
-
-    def debit(self, total, creditCardNumber, creditCardExpiration, creditCardOwner):
-        self.hasCharge.append((total, creditCardNumber, creditCardExpiration, creditCardOwner))
-
-
-class MerchantProccesotAdapterFailingStub(MerchantProccesorAdapter):
-    def __init__(self, errorMessage):
-        self.errorMessage = errorMessage
-        self.hasCharge = []
-
-    def debit(self, total, creditCardNumber, creditCardExpiration, creditCardOwner):
-        raise Exception(self.errorMessage)
-
-
-class Cart:
-    _quantityErrorMessage = "Book quantity is less than 1"
-    _invalidISBNErrorMessage = "Book has invalid ISBN"
-
-    def __init__(self):
-        self.itemsList = []
-
-    def add(self, anISBN, quantity):
-        if quantity < 1:
-            raise Exception(self.__class__._quantityErrorMessage)
-        if not self.isValid(anISBN):
-            raise Exception(self._invalidISBNErrorMessage)
-        self.itemsList += [anISBN for i in range(quantity)]
-
-    def isValid(self, anISBN):
-        return anISBN in BOOK_CATALOG
-
-    def isEmpty(self):
-        return not self.itemsList
-
-    def listCart(self):
-        books = set(self.itemsList)
-        bookList = []
-        for i in books:
-            bookList.append((i, self.itemsList.count(i)))
-        return bookList
-
-
-class Cashier(object):
-    def __init__(self, merchantProccesor):
-
-        ##TODO: Esto todavia no va me parece
-        self.merchantProccesor = merchantProccesor
-
-    def checkout(self, aCart, aCreditCard):
-        if aCart.isEmpty():
-            raise Exception("Empty Cart")
-
-        if aCreditCard.hasExpiredAt(datetime.date.today()):
-            raise Exception("Expired Card")
-
-        total = self.getTotal(aCart)
-        self.merchantProccesor.debit(total, aCreditCard.ccn, aCreditCard.cco, aCreditCard.cced)
-        self.registerPurchase(aCart)
-
-    def getTotal(self, aCart):
-        return reduce(lambda sum, item: sum + self.getPrice(item[0]) * item[1], aCart.listCart(), 0)
-
-    def getPrice(self, ISBN):
-        return BOOK_CATALOG[ISBN]
-
-    def registerPurchase(self, aCart):
-        SALES_BOOKS.append(aCart.listCart())
-
-
-## TODO: Separar y Hacer una SuperClase en Comun . Usar Factories
 class CartTests(TestCase):
     def setUp(self):
         self.defaultCatalog()
@@ -231,15 +122,18 @@ class CartTests(TestCase):
         self.assertEquals(merchantProccesor.hasCharge, [(aCashier.getTotal(aCart), card.ccn, card.cco, card.cced)])
         self.assertEquals(SALES_BOOKS, [aCart.listCart()])
 
+    # class MerchantProccesorFailingAdapterStub(MerchantProccesorAdapter):
+
     def testCashierCantCheckoutWithStolenCard(self):
         aCart = self.createCartWithSomeBooks()
-        merchantProccesor = MerchantProccesotAdapterFailingStub("Stolen Card")
+        merchantProccesor = MerchantProccesorFailingAdapterStub(
+            "Stolen Card")  # Tira excepcion con el mensaje que debe responder .
         aCashier = Cashier(merchantProccesor)
-
         card = ValidCard()
+
         try:
             aCashier.checkout(aCart, card)
             self.fail()
-        except Exception as e:
-            self.assertEquals(e.message, "Stolen Card")
+        except:
             self.assertEquals(SALES_BOOKS, [])
+            self.assertEquals(merchantProccesor.hasCharge, [])
