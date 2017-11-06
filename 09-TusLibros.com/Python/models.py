@@ -2,8 +2,8 @@ import datetime
 import random
 from unittest.case import TestCase
 
+
 ## Todo: Cambiar esto y pasarlo por catalogo
-SALES_BOOKS = []
 
 
 ## Cambiar Date
@@ -26,7 +26,8 @@ class StolenCardException(CreditCardError):
 
 
 class RejectedCard(CreditCardError):
-    message = "Card with negative balance"
+    message = "Card has negative balance"
+
 
 class ExpiredCard(CreditCardError):
     message = "Expired Card"
@@ -109,6 +110,7 @@ class Cashier(object):
         self.creditCard = aCreditCard
         self.cart = aCart
         self.merchantProccesor = merchantProccesor
+        self.debited = False
 
     def checkout(self):
         if self.cart.isEmpty():
@@ -119,18 +121,9 @@ class Cashier(object):
 
         total = self.cart.getTotal()
         self.merchantProccesor.debit(total, self.creditCard.ccn, self.creditCard.cco, self.creditCard.cced)
-        self.registerPurchase(self.cart)
-
-    def registerPurchase(self, aCart):
-        SALES_BOOKS.append(aCart)
 
 
 class CartTests(TestCase):
-    def setUp(self):
-        self.defaultCatalog()
-        global SALES_BOOKS
-        SALES_BOOKS = []
-
     def defaultCatalog(self):
         return {1: 200, 2: 100}
 
@@ -204,7 +197,6 @@ class CartTests(TestCase):
             self.fail()
         except Exception as e:
             self.assertTrue(e.message, "Empty Cart")
-            self.assertEquals(SALES_BOOKS, [])
 
     def createCartWithSomeBooks(self):
         aCart = Cart(self.defaultCatalog())
@@ -222,7 +214,6 @@ class CartTests(TestCase):
             self.fail()
         except ExpiredCard as e:
             self.assertEquals(e.message, "Expired Card")
-            self.assertEquals(SALES_BOOKS, [])
             self.assertEquals(merchantProccesor.hasCharge, [])
 
     def testCashierCanDebitTotal(self):
@@ -235,7 +226,6 @@ class CartTests(TestCase):
         aCashier.checkout()
 
         self.assertEquals(merchantProccesor.hasCharge, [(aCart.getTotal(), card.ccn, card.cco, card.cced)])
-        self.assertEquals(SALES_BOOKS, [aCart])
 
     def testCashierCantCheckoutWithStolenCard(self):
 
@@ -252,7 +242,6 @@ class CartTests(TestCase):
             self.fail()
         except StolenCardException as e:
             self.assertEquals(e.message, "Stolen Card")
-            self.assertEquals(SALES_BOOKS, [])
 
     def testCashierCantCheckoutWithCardWithNegativeBalance(self):
 
@@ -268,4 +257,4 @@ class CartTests(TestCase):
             aCashier.checkout()
             self.fail()
         except RejectedCard as e:
-            self.assertEquals(SALES_BOOKS, [])
+            self.assertEquals(e.message, "Card has negative balance")
