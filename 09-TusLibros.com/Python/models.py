@@ -5,6 +5,7 @@ from unittest.case import TestCase
 ## Todo: Cambiar esto y pasarlo por catalogo
 SALES_BOOKS = []
 
+
 ## Cambiar Date
 class CreditCard:
     def __init__(self, cco, ccn, cced):
@@ -18,6 +19,17 @@ class CreditCard:
 
 class CreditCardError(Exception):
     pass
+
+
+class StolenCardException(CreditCardError):
+    message = "Stolen Card"
+
+
+class RejectedCard(CreditCardError):
+    message = "Card with negative balance"
+
+class ExpiredCard(CreditCardError):
+    message = "Expired Card"
 
 
 def ValidCard():
@@ -103,7 +115,7 @@ class Cashier(object):
             raise Exception("Empty Cart")
 
         if self.creditCard.hasExpiredAt(datetime.date.today()):
-            raise Exception("Expired Card")
+            raise ExpiredCard()
 
         total = self.cart.getTotal()
         self.merchantProccesor.debit(total, self.creditCard.ccn, self.creditCard.cco, self.creditCard.cced)
@@ -208,7 +220,7 @@ class CartTests(TestCase):
         try:
             aCashier.checkout()
             self.fail()
-        except Exception as e:
+        except ExpiredCard as e:
             self.assertEquals(e.message, "Expired Card")
             self.assertEquals(SALES_BOOKS, [])
             self.assertEquals(merchantProccesor.hasCharge, [])
@@ -228,7 +240,7 @@ class CartTests(TestCase):
     def testCashierCantCheckoutWithStolenCard(self):
 
         def merchantProccesorStolenCardException():
-            raise CreditCardError("Stolen Card")
+            raise StolenCardException()
 
         aCart = self.createCartWithSomeBooks()
         merchantProccesor = MerchantProccesorAdapterStub(merchantProccesorStolenCardException)
@@ -238,6 +250,22 @@ class CartTests(TestCase):
         try:
             aCashier.checkout()
             self.fail()
-        except CreditCardError as e:
+        except StolenCardException as e:
             self.assertEquals(e.message, "Stolen Card")
+            self.assertEquals(SALES_BOOKS, [])
+
+    def testCashierCantCheckoutWithCardWithNegativeBalance(self):
+
+        def merchantProccesorStolenCardException():
+            raise RejectedCard()
+
+        aCart = self.createCartWithSomeBooks()
+        merchantProccesor = MerchantProccesorAdapterStub(merchantProccesorStolenCardException)
+        card = ValidCard()
+        aCashier = Cashier(merchantProccesor, aCart, card)
+
+        try:
+            aCashier.checkout()
+            self.fail()
+        except RejectedCard as e:
             self.assertEquals(SALES_BOOKS, [])

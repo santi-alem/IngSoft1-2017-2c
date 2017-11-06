@@ -2,16 +2,17 @@ import datetime
 import uuid
 from unittest import TestCase
 
-import models
-from models import Cart, Cashier, MerchantProccesorAdapter, ValidCard, AlwaysDatedCard
+from models import Cart, Cashier, ValidCard, AlwaysDatedCard, CreditCardError, \
+    MerchantProccesorAdapterStub
 
 
 class UserException(Exception):
     message = "Wrong username or password"
 
 
-class InterfaceAdapter:
-    def __init__(self, users, salesBook, carts, bookCatalogue):
+class Interface:
+    def __init__(self, users, salesBook, carts, bookCatalogue, merchantProcessor):
+        self.merchantProcessor = merchantProcessor
         self.bookCatalogue = bookCatalogue
         self.carts = carts
         self.salesBook = salesBook
@@ -56,16 +57,18 @@ class InterfaceAdapter:
 
     def checkout(self, cartID, aCreditCard):
         cart = self.getCart(cartID)
-        cashier = Cashier(MerchantProccesorAdapter(), cart, aCreditCard)
+        cashier = Cashier(self.merchantProcessor, cart, aCreditCard)
         cashier.checkout()
         username = self.getCartUser(cartID)
-        self.salesBook[username] = self.salesBook[username].append(cashier) if username in self.salesBook else [
-            cashier]
+        self.salesBook[username] = self.salesBook[username] + [cashier] if username in self.salesBook else [cashier]
 
     def listPurchases(self, username, password):
-        if self.authenticate(username, password):
-            return [purchase.cart.listCart() for purchase in
-                    self.salesBook[username]] if username in self.salesBook else []
+        purchases = {}
+        if self.authenticate(username, password) and username in self.salesBook:
+            for purchase in self.salesBook[username]:
+                for item in purchase.cart.listCart():
+                    purchases[item[0]] = purchases[item[0]] + item[1] if item[0] in purchases else item[1]
+        return purchases
 
 
 class ExpiredCartError(Exception):
@@ -74,7 +77,7 @@ class ExpiredCartError(Exception):
 
 class InterfaceTest(TestCase):
     def defaultlCatalogue(self):
-        return {"1234": 100}
+        return {"1234": 100, "4321": 200}
 
     def defaultSalesBook(self):
         return {}
@@ -90,7 +93,7 @@ class InterfaceTest(TestCase):
         catalogue = self.defaultlCatalogue()
         cartList = self.defaultCarts()
         users = self.defaultUsers()
-        return InterfaceAdapter(users, salesBook, cartList, catalogue)
+        return Interface(users, salesBook, cartList, catalogue, MerchantProccesorAdapterStub(lambda: None))
 
     def testInterfaceFailsToCreateCartWhenUserDoesntExist(self):
         interface = self.defaultInterface()
@@ -138,7 +141,6 @@ class InterfaceTest(TestCase):
 
         aCart = interface.createCart("anUser", "123")
         anISBN = "1234"
-
         interface.now = lambda: datetime.datetime.now() + datetime.timedelta(minutes=30)
         try:
             interface.addToCart(aCart, anISBN, quantity=2)
@@ -153,10 +155,26 @@ class InterfaceTest(TestCase):
         anISBN = "1234"
 
         interface.addToCart(aCart, anISBN, quantity=3)
-
         interface.checkout(aCart, ValidCard())
 
-        self.assertEquals(interface.listPurchases("anUser", "123"), [[(anISBN, 3)]])
+        self.assertEquals(interface.listPurchases("anUser", "123"), {anISBN: 3})
+
+    def testInterfaceCanListUsersMultiplePurchases(self):
+        interface = self.defaultInterface()
+
+        aCart = interface.createCart("anUser", "123")
+        anISBN = "1234"
+        anotherISBN = "4321"
+
+        interface.addToCart(aCart, anISBN, quantity=3)
+        interface.checkout(aCart, ValidCard())
+
+        aCart = interface.createCart("anUser", "123")
+        interface.addToCart(aCart, anISBN, quantity=3)
+        interface.addToCart(aCart, anotherISBN, quantity=2)
+        interface.checkout(aCart, ValidCard())
+
+        self.assertEquals(interface.listPurchases("anUser", "123"), {anISBN: 6, anotherISBN: 2})
 
     def testInterfaceDoenstDoAnythingIfCheckoutFails(self):
         interface = self.defaultInterface()
@@ -165,7 +183,7 @@ class InterfaceTest(TestCase):
 
         interface.addToCart(aCart, anISBN, quantity=3)
         try:
-            interface.checkout(aCart,
-                               AlwaysDatedCard())  ##Una de las maneras que tengo de hacer que falle desde afuera el checkout
-        except Exception as error:
-            self.assertEquals(interface.listPurchases("anUser", "123"), [])
+            ##Una de las maneras que tengo de hacer que falle desde afuera el checkout
+            interface.checkout(aCart, AlwaysDatedCard())
+        except CreditCardError as error:
+            self.assertEquals(interface.listPurchases("anUser", "123"), {})
