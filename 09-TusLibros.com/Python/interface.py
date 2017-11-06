@@ -31,6 +31,7 @@ class Interface:
 
         if self.now() - cart[1] > datetime.timedelta(minutes=30):
             raise ExpiredCartError()
+
         return cart[0]
 
     def getCartUser(self, cartID):
@@ -144,7 +145,7 @@ class InterfaceTest(TestCase):
         self.assertEqual(interface.listCart(aCart), [(anISBN, 2)])
         self.assertEqual(interface.listCart(anotherCart), [])
 
-    def testInterfaceCantIntercatWithExpiredCart(self):
+    def testInterfaceCantAddToExpiredCart(self):
         interface = self.defaultInterface()
 
         aCart = interface.createCart("anUser", "123")
@@ -152,6 +153,19 @@ class InterfaceTest(TestCase):
         interface.now = lambda: datetime.datetime.now() + datetime.timedelta(minutes=30)
         try:
             interface.addToCart(aCart, anISBN, quantity=2)
+            self.fail()
+        except ExpiredCartError as e:
+            self.assertEquals(e.message, "This Cart Has Expired")
+
+    def testInterfaceCantCheckoutExpiredCart(self):
+        interface = self.defaultInterface()
+
+        aCart = interface.createCart("anUser", "123")
+        anISBN = "1234"
+        interface.addToCart(aCart, anISBN, quantity=2)
+        interface.now = lambda: datetime.datetime.now() + datetime.timedelta(minutes=30)
+        try:
+            interface.checkout(aCart, ValidCard())
             self.fail()
         except ExpiredCartError as e:
             self.assertEquals(e.message, "This Cart Has Expired")
