@@ -3,9 +3,7 @@ import random
 from unittest.case import TestCase
 
 ## Todo: Cambiar esto y pasarlo por catalogo
-BOOK_CATALOG = {}
 SALES_BOOKS = []
-
 
 ## Cambiar Date
 class CreditCard:
@@ -63,7 +61,8 @@ class Cart:
     _quantityErrorMessage = "Book quantity is less than 1"
     _invalidISBNErrorMessage = "Book has invalid ISBN"
 
-    def __init__(self):
+    def __init__(self, book_catalogue):
+        self.book_catalogue = book_catalogue
         self.itemsList = []
 
     def add(self, anISBN, quantity):
@@ -74,7 +73,7 @@ class Cart:
         self.itemsList += [anISBN for i in range(quantity)]
 
     def isValid(self, anISBN):
-        return anISBN in BOOK_CATALOG
+        return anISBN in self.book_catalogue
 
     def isEmpty(self):
         return not self.itemsList
@@ -85,6 +84,12 @@ class Cart:
         for i in books:
             bookList.append((i, self.itemsList.count(i)))
         return bookList
+
+    def getTotal(self):
+        return reduce(lambda sum, item: sum + self.getPrice(item[0]) * item[1], self.listCart(), 0)
+
+    def getPrice(self, ISBN):
+        return self.book_catalogue[ISBN]
 
 
 class Cashier(object):
@@ -100,21 +105,14 @@ class Cashier(object):
         if self.creditCard.hasExpiredAt(datetime.date.today()):
             raise Exception("Expired Card")
 
-        total = self.getTotal(self.cart)
+        total = self.cart.getTotal()
         self.merchantProccesor.debit(total, self.creditCard.ccn, self.creditCard.cco, self.creditCard.cced)
         self.registerPurchase(self.cart)
-
-    def getTotal(self, aCart):
-        return reduce(lambda sum, item: sum + self.getPrice(item[0]) * item[1], aCart.listCart(), 0)
-
-    def getPrice(self, ISBN):
-        return BOOK_CATALOG[ISBN]
 
     def registerPurchase(self, aCart):
         SALES_BOOKS.append(aCart)
 
 
-## TODO: Separar y Hacer una SuperClase en Comun . Usar Factories
 class CartTests(TestCase):
     def setUp(self):
         self.defaultCatalog()
@@ -122,16 +120,15 @@ class CartTests(TestCase):
         SALES_BOOKS = []
 
     def defaultCatalog(self):
-        global BOOK_CATALOG
-        BOOK_CATALOG = {1: 200, 2: 100}
+        return {1: 200, 2: 100}
 
     def testCartStartsEmpty(self):
-        aCart = Cart()
+        aCart = Cart(self.defaultCatalog())
         self.assertEquals(aCart.itemsList, [])
 
     def testCanAddItemsToCart(self):
 
-        aCart = Cart()
+        aCart = Cart(self.defaultCatalog())
         anISBN = 1
 
         aCart.add(anISBN, 1)
@@ -139,7 +136,7 @@ class CartTests(TestCase):
         self.assertEquals(aCart.itemsList, [anISBN])
 
     def testCanAddMultipleItemsToCart(self):
-        aCart = Cart()
+        aCart = Cart(self.defaultCatalog())
 
         anISBN = 1
         anotherISBN = 2
@@ -150,7 +147,7 @@ class CartTests(TestCase):
         self.assertEquals(aCart.itemsList, [anISBN, anotherISBN])
 
     def testCanAddMoreThanOneBooks(self):
-        aCart = Cart()
+        aCart = Cart(self.defaultCatalog())
 
         aCart.add(1, 3)
 
@@ -158,7 +155,7 @@ class CartTests(TestCase):
         self.assertEquals(len(aCart.itemsList), 3)
 
     def testCantAddlessThanOneBooks(self):
-        aCart = Cart()
+        aCart = Cart(self.defaultCatalog())
 
         anISBN = 3
 
@@ -169,7 +166,7 @@ class CartTests(TestCase):
             self.assertEquals(e.message, Cart._quantityErrorMessage)
 
     def testCantAddInvalidBookISBN(self):
-        aCart = Cart()
+        aCart = Cart(self.defaultCatalog())
         anISBN = 3
 
         try:
@@ -180,7 +177,7 @@ class CartTests(TestCase):
             self.assertTrue(aCart.isEmpty())
 
     def testCartListCorrectly(self):
-        aCart = Cart()
+        aCart = Cart(self.defaultCatalog())
         anISBN = 1
         anotherISBN = 2
         aCart.add(anISBN, 2)
@@ -188,7 +185,7 @@ class CartTests(TestCase):
         self.assertEqual(aCart.listCart(), [(anISBN, 2), (anotherISBN, 4)])  # ??????????????????????
 
     def testCashierCantCheckoutEmptyCart(self):
-        aCart = Cart()
+        aCart = Cart(self.defaultCatalog())
         aCashier = Cashier(MerchantProccesorAdapterSpy(), aCart, ValidCard())
         try:
             aCashier.checkout()
@@ -198,7 +195,7 @@ class CartTests(TestCase):
             self.assertEquals(SALES_BOOKS, [])
 
     def createCartWithSomeBooks(self):
-        aCart = Cart()
+        aCart = Cart(self.defaultCatalog())
         aCart.add(1, 1)
         aCart.add(2, 1)
         return aCart
@@ -225,7 +222,7 @@ class CartTests(TestCase):
 
         aCashier.checkout()
 
-        self.assertEquals(merchantProccesor.hasCharge, [(aCashier.getTotal(aCart), card.ccn, card.cco, card.cced)])
+        self.assertEquals(merchantProccesor.hasCharge, [(aCart.getTotal(), card.ccn, card.cco, card.cced)])
         self.assertEquals(SALES_BOOKS, [aCart])
 
     def testCashierCantCheckoutWithStolenCard(self):

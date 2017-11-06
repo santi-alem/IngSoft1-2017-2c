@@ -5,28 +5,30 @@ from unittest import TestCase
 import models
 from models import Cart, Cashier, MerchantProccesorAdapter, ValidCard, AlwaysDatedCard
 
-USERS = {}
-CARTS = {}
-USERS_SALES_BOOK = {}
-
 
 class UserException(Exception):
     message = "Wrong username or password"
 
 
 class InterfaceAdapter:
+    def __init__(self, users, salesBook, carts, bookCatalogue):
+        self.bookCatalogue = bookCatalogue
+        self.carts = carts
+        self.salesBook = salesBook
+        self.users = users
+
     def getCart(self, cartID):
-        cart = CARTS[cartID]
+        cart = self.carts[cartID]
 
         if self.now() - cart[1] > datetime.timedelta(minutes=30):
             raise ExpiredCartError()
         return cart[0]
 
     def getCartUser(self, cartID):
-        return CARTS[cartID][2]
+        return self.carts[cartID][2]
 
     def updateCart(self, cartID):
-        CARTS[cartID] = (CARTS[cartID][0], self.now(), CARTS[cartID][2])
+        self.carts[cartID] = (self.carts[cartID][0], self.now(), self.carts[cartID][2])
 
     def now(self):
         return datetime.datetime.now()
@@ -34,14 +36,14 @@ class InterfaceAdapter:
     def createCart(self, username, password):
         if self.authenticate(username, password):
             cartID = self.createID()
-            CARTS[cartID] = (Cart(), self.now(), username)
+            self.carts[cartID] = (Cart(self.bookCatalogue), self.now(), username)
             return cartID
 
     def listCart(self, cartID):
         return self.getCart(cartID).listCart()
 
     def authenticate(self, username, password):
-        if username not in USERS or USERS[username] != password:
+        if username not in self.users or self.users[username] != password:
             raise UserException
         return True
 
@@ -57,13 +59,13 @@ class InterfaceAdapter:
         cashier = Cashier(MerchantProccesorAdapter(), cart, aCreditCard)
         cashier.checkout()
         username = self.getCartUser(cartID)
-        USERS_SALES_BOOK[username] = USERS_SALES_BOOK[username].append(cashier) if username in USERS_SALES_BOOK else [
+        self.salesBook[username] = self.salesBook[username].append(cashier) if username in self.salesBook else [
             cashier]
 
     def listPurchases(self, username, password):
         if self.authenticate(username, password):
             return [purchase.cart.listCart() for purchase in
-                    USERS_SALES_BOOK[username]] if username in USERS_SALES_BOOK else []
+                    self.salesBook[username]] if username in self.salesBook else []
 
 
 class ExpiredCartError(Exception):
@@ -71,21 +73,27 @@ class ExpiredCartError(Exception):
 
 
 class InterfaceTest(TestCase):
-    def setUp(self):
-        global USERS
-        USERS = {"anUser": "123"}
+    def defaultlCatalogue(self):
+        return {"1234": 100}
 
-        global CARTS
-        CARTS = {}
+    def defaultSalesBook(self):
+        return {}
 
-        global USERS_SALES_BOOK
-        USERS_SALES_BOOK = {}
+    def defaultCarts(self):
+        return {}
 
-        models.BOOK_CATALOG = {"1234": 100}
-        models.SALES_BOOKS = []
+    def defaultUsers(self):
+        return {"anUser": "123"}
+
+    def defaultInterface(self):
+        salesBook = self.defaultSalesBook()
+        catalogue = self.defaultlCatalogue()
+        cartList = self.defaultCarts()
+        users = self.defaultUsers()
+        return InterfaceAdapter(users, salesBook, cartList, catalogue)
 
     def testInterfaceFailsToCreateCartWhenUserDoesntExist(self):
-        interface = InterfaceAdapter()
+        interface = self.defaultInterface()
         fakeUsername = "aaaaaaa"
         somePassword = "aasssdd"
 
@@ -93,10 +101,10 @@ class InterfaceTest(TestCase):
             interface.createCart(fakeUsername, somePassword)
             self.fail()
         except UserException:
-            self.assertEquals(CARTS, {})
+            self.assertEquals(interface.carts, {})
 
     def testInterfaceCreatesEmptyCart(self):
-        interface = InterfaceAdapter()
+        interface = self.defaultInterface()
 
         cart_ID = interface.createCart("anUser", "123")
 
@@ -104,7 +112,7 @@ class InterfaceTest(TestCase):
         self.assertEquals(interface.listCart(cart_ID), [])
 
     def testCanAddBooks(self):
-        interface = InterfaceAdapter()
+        interface = self.defaultInterface()
         cartID = interface.createCart("anUser", "123")
         anISBN = "1234"
 
@@ -113,7 +121,7 @@ class InterfaceTest(TestCase):
         self.assertEqual(interface.listCart(cartID), [(anISBN, 1)])
 
     def testTwoCartsWithDifferentIDSAreDifferent(self):
-        interface = InterfaceAdapter()
+        interface = self.defaultInterface()
 
         aCart = interface.createCart("anUser", "123")
         anotherCart = interface.createCart("anUser", "123")
@@ -126,7 +134,7 @@ class InterfaceTest(TestCase):
         self.assertEqual(interface.listCart(anotherCart), [])
 
     def testInterfaceCantIntercatWithExpiredCart(self):
-        interface = InterfaceAdapter()
+        interface = self.defaultInterface()
 
         aCart = interface.createCart("anUser", "123")
         anISBN = "1234"
@@ -139,7 +147,7 @@ class InterfaceTest(TestCase):
             self.assertEquals(e.message, "This Cart Has Expired")
 
     def testInterfaceAddsPurchaseAfterCheckOut(self):
-        interface = InterfaceAdapter()
+        interface = self.defaultInterface()
 
         aCart = interface.createCart("anUser", "123")
         anISBN = "1234"
@@ -151,12 +159,13 @@ class InterfaceTest(TestCase):
         self.assertEquals(interface.listPurchases("anUser", "123"), [[(anISBN, 3)]])
 
     def testInterfaceDoenstDoAnythingIfCheckoutFails(self):
-        interface = InterfaceAdapter()
+        interface = self.defaultInterface()
         aCart = interface.createCart("anUser", "123")
         anISBN = "1234"
 
         interface.addToCart(aCart, anISBN, quantity=3)
         try:
-            interface.checkout(aCart, AlwaysDatedCard()) ##La manera que tengo de hacer que falle desde afuera el checkout
+            interface.checkout(aCart,
+                               AlwaysDatedCard())  ##Una de las maneras que tengo de hacer que falle desde afuera el checkout
         except Exception as error:
             self.assertEquals(interface.listPurchases("anUser", "123"), [])
