@@ -10,6 +10,10 @@ class UserException(Exception):
     message = "Wrong username or password"
 
 
+class CartDoesNotExist(Exception):
+    message = "Cart does not exist"
+
+
 class Interface:
     def __init__(self, users, salesBook, carts, bookCatalogue, merchantProcessor):
         self.merchantProcessor = merchantProcessor
@@ -19,6 +23,10 @@ class Interface:
         self.users = users
 
     def getCart(self, cartID):
+        # Levanto esta excepcion por que es un poco mas declarativa que el key error de python
+        if cartID not in self.carts:
+            raise CartDoesNotExist()
+
         cart = self.carts[cartID]
 
         if self.now() - cart[1] > datetime.timedelta(minutes=30):
@@ -185,5 +193,25 @@ class InterfaceTest(TestCase):
         try:
             ##Una de las maneras que tengo de hacer que falle desde afuera el checkout
             interface.checkout(aCart, AlwaysDatedCard())
-        except CreditCardError as error:
+        except CreditCardError:
+            self.assertEquals(interface.listPurchases("anUser", "123"), {})
+
+    def testInterfaceFailsWhenAddingToCartThatDoenstExists(self):
+        interface = self.defaultInterface()
+        aFakeCart = "fakeCart"
+        anISBN = "1234"
+
+        try:
+            interface.addToCart(aFakeCart, anISBN, quantity=3)
+            self.fail()
+        except CartDoesNotExist:
+            self.assertEquals(interface.listPurchases("anUser", "123"), {})
+
+    def testInterfaceFailsWhenCheckingOutCartThatDoenstExists(self):
+        interface = self.defaultInterface()
+        aFakeCart = "fakeCart"
+        try:
+            interface.checkout(aFakeCart, ValidCard())
+            self.fail()
+        except CartDoesNotExist:
             self.assertEquals(interface.listPurchases("anUser", "123"), {})
