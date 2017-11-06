@@ -18,6 +18,10 @@ class CreditCard:
         return self.cced < date
 
 
+class CreditCardError(Exception):
+    pass
+
+
 def ValidCard():
     someName = random.choice("aabbcccdde  effgghhii")
     cardNumber = random.randint(1111111111111111, 9999999999999999)
@@ -47,13 +51,12 @@ class MerchantProccesorAdapterSpy(MerchantProccesorAdapter):
         self.hasCharge.append((total, creditCardNumber, creditCardExpiration, creditCardOwner))
 
 
-class MerchantProccesotAdapterFailingStub(MerchantProccesorAdapter):
-    def __init__(self, errorMessage):
-        self.errorMessage = errorMessage
-        self.hasCharge = []
+class MerchantProccesorAdapterStub(MerchantProccesorAdapter):
+    def __init__(self, toExcexute):
+        self.toExcexute = toExcexute
 
     def debit(self, total, creditCardNumber, creditCardExpiration, creditCardOwner):
-        raise Exception(self.errorMessage)
+        return self.toExcexute()
 
 
 class Cart:
@@ -85,21 +88,21 @@ class Cart:
 
 
 class Cashier(object):
-    def __init__(self, merchantProccesor):
-
-        ##TODO: Esto todavia no va me parece
+    def __init__(self, merchantProccesor, aCart, aCreditCard):
+        self.creditCard = aCreditCard
+        self.cart = aCart
         self.merchantProccesor = merchantProccesor
 
-    def checkout(self, aCart, aCreditCard):
-        if aCart.isEmpty():
+    def checkout(self):
+        if self.cart.isEmpty():
             raise Exception("Empty Cart")
 
-        if aCreditCard.hasExpiredAt(datetime.date.today()):
+        if self.creditCard.hasExpiredAt(datetime.date.today()):
             raise Exception("Expired Card")
 
-        total = self.getTotal(aCart)
-        self.merchantProccesor.debit(total, aCreditCard.ccn, aCreditCard.cco, aCreditCard.cced)
-        self.registerPurchase(aCart)
+        total = self.getTotal(self.cart)
+        self.merchantProccesor.debit(total, self.creditCard.ccn, self.creditCard.cco, self.creditCard.cced)
+        self.registerPurchase(self.cart)
 
     def getTotal(self, aCart):
         return reduce(lambda sum, item: sum + self.getPrice(item[0]) * item[1], aCart.listCart(), 0)
@@ -108,7 +111,7 @@ class Cashier(object):
         return BOOK_CATALOG[ISBN]
 
     def registerPurchase(self, aCart):
-        SALES_BOOKS.append(aCart.listCart())
+        SALES_BOOKS.append(aCart)
 
 
 ## TODO: Separar y Hacer una SuperClase en Comun . Usar Factories
@@ -186,9 +189,9 @@ class CartTests(TestCase):
 
     def testCashierCantCheckoutEmptyCart(self):
         aCart = Cart()
-        aCashier = Cashier(MerchantProccesorAdapterSpy())
+        aCashier = Cashier(MerchantProccesorAdapterSpy(), aCart, ValidCard())
         try:
-            aCashier.checkout(aCart, ValidCard())
+            aCashier.checkout()
             self.fail()
         except Exception as e:
             self.assertTrue(e.message, "Empty Cart")
@@ -203,43 +206,41 @@ class CartTests(TestCase):
     def testCantCheckOutDatedCard(self):
         aCart = self.createCartWithSomeBooks()
         merchantProccesor = MerchantProccesorAdapterSpy()
-        aCashier = Cashier(merchantProccesor)
+        aCashier = Cashier(merchantProccesor, aCart, AlwaysDatedCard())
 
         try:
-            aCashier.checkout(aCart, AlwaysDatedCard())
+            aCashier.checkout()
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, "Expired Card")
             self.assertEquals(SALES_BOOKS, [])
             self.assertEquals(merchantProccesor.hasCharge, [])
 
-    def testCashierCanCalculateCartTotal(self):
-        aCart = self.createCartWithSomeBooks()
-        aCashier = Cashier(MerchantProccesorAdapterSpy())
-
-        self.assertEquals(aCashier.getTotal(aCart), 300)
-
     def testCashierCanDebitTotal(self):
         aCart = self.createCartWithSomeBooks()
         merchantProccesor = MerchantProccesorAdapterSpy()
-        aCashier = Cashier(merchantProccesor)
-
         card = ValidCard()
 
-        aCashier.checkout(aCart, card)
+        aCashier = Cashier(merchantProccesor, aCart, card)
+
+        aCashier.checkout()
 
         self.assertEquals(merchantProccesor.hasCharge, [(aCashier.getTotal(aCart), card.ccn, card.cco, card.cced)])
-        self.assertEquals(SALES_BOOKS, [aCart.listCart()])
+        self.assertEquals(SALES_BOOKS, [aCart])
 
     def testCashierCantCheckoutWithStolenCard(self):
-        aCart = self.createCartWithSomeBooks()
-        merchantProccesor = MerchantProccesotAdapterFailingStub("Stolen Card")
-        aCashier = Cashier(merchantProccesor)
 
+        def merchantProccesorStolenCardException():
+            raise CreditCardError("Stolen Card")
+
+        aCart = self.createCartWithSomeBooks()
+        merchantProccesor = MerchantProccesorAdapterStub(merchantProccesorStolenCardException)
         card = ValidCard()
+        aCashier = Cashier(merchantProccesor, aCart, card)
+
         try:
-            aCashier.checkout(aCart, card)
+            aCashier.checkout()
             self.fail()
-        except Exception as e:
+        except CreditCardError as e:
             self.assertEquals(e.message, "Stolen Card")
             self.assertEquals(SALES_BOOKS, [])
