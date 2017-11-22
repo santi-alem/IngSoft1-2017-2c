@@ -73,7 +73,10 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Customer.cs" />
+    <Compile Include="CustomerSystem.cs" />
     <Compile Include="CustomerTests.cs" />
+    <Compile Include="DataObject.cs" />
+    <Compile Include="PersistentCustomerSystem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

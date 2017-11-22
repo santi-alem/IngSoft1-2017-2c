@@ -20,7 +20,87 @@ namespace com.tenpines.advancetdd
         }
     }
 
-    public class Address
+    public class CustomerImporter
+    {
+        private static string _line;
+        private static string[] _lineData;
+        private static ISession sessionTo;
+        private static TextReader lineReaderFrom;
+        private static Customer _newCustomer;
+
+        public  void ImportCustomers()
+        {
+            while (hasNextLine())
+            {
+                ExtractRecord();
+                ImportRecord();
+            }
+
+        }
+
+        private void ImportRecord()
+        {
+            if (nextLineIsCostumer())
+            {
+                addCostumerFromLine();
+            }
+            else if (nextLineIsAddress())
+            {
+                addAddressToCostumer();
+            }
+        }
+
+        private static void ExtractRecord()
+        {
+            _lineData = _line.Split(',');
+            
+        }
+
+        public CustomerImporter(ISession session, TextReader lineReader)
+        {
+            sessionTo = session;
+            lineReaderFrom = lineReader;
+        }
+
+        private static void addAddressToCostumer()
+        {
+            var newAddress = new Address();
+
+            _newCustomer.AddAddress(newAddress);
+            newAddress.StreetName = _lineData[1];
+            newAddress.StreetNumber = Int32.Parse(_lineData[2]);
+            newAddress.Town = _lineData[3];
+            newAddress.ZipCode = Int32.Parse(_lineData[4]);
+            newAddress.Province = _lineData[5];
+        }
+
+        private static void addCostumerFromLine()
+        {
+            _newCustomer = new Customer();
+            _newCustomer.FirstName = _lineData[1];
+            _newCustomer.LastName = _lineData[2];
+            _newCustomer.IdentificationType = _lineData[3];
+            _newCustomer.IdentificationNumber = _lineData[4];
+            sessionTo.Persist(_newCustomer);
+        }
+
+        private static bool nextLineIsAddress()
+        {
+            return _line.StartsWith("A");
+        }
+
+        private static bool nextLineIsCostumer()
+        {
+            return _line.StartsWith("C");
+        }
+
+        private static bool hasNextLine()
+        {
+            _line = lineReaderFrom.ReadLine();
+            return _line != null;
+        }
+    }
+    public class Address : IDataObject
     {
         public virtual Guid Id { get; set; }
         public virtual string StreetName { get; set; }
@@ -31,7 +111,7 @@ namespace com.tenpines.advancetdd
     }
 
 
-    public class Customer
+    public class Customer : IDataObject
     {
         public virtual long Id { get; set; }
         public virtual string FirstName { get; set; }
@@ -50,11 +130,11 @@ namespace com.tenpines.advancetdd
             Addresses.Add(anAddress);
         }
 
-        public static void Main(string[] args)
+           public static void Main(string[] args)
         {
             try
             {
-                CustomerTests.ImportCustomers();
+                //CustomerImporter.ImportCustomers(CustomerTests.createSession(),);
             }
             catch (Exception e)
             {
