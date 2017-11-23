@@ -24,7 +24,7 @@ namespace com.tenpines.advancetdd
     {
         private static string _line;
         private static string[] _lineData;
-        private static ISession sessionTo;
+        private static ICustomerSystem costumerSystem;
         private static TextReader lineReaderFrom;
         private static Customer _newCustomer;
 
@@ -56,9 +56,9 @@ namespace com.tenpines.advancetdd
             
         }
 
-        public CustomerImporter(ISession session, TextReader lineReader)
+        public CustomerImporter(ICustomerSystem system, TextReader lineReader)
         {
-            sessionTo = session;
+            costumerSystem = system;
             lineReaderFrom = lineReader;
         }
 
@@ -81,7 +81,12 @@ namespace com.tenpines.advancetdd
             _newCustomer.LastName = _lineData[2];
             _newCustomer.IdentificationType = _lineData[3];
             _newCustomer.IdentificationNumber = _lineData[4];
-            sessionTo.Persist(_newCustomer);
+            addCostumer();
+        }
+
+        private static void addCostumer()
+        {
+            costumerSystem.AddCustomer(_newCustomer);
         }
 
         private static bool nextLineIsAddress()
