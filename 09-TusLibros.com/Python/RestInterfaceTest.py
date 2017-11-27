@@ -1,9 +1,9 @@
 from AuthenticationSystem import AuthenticationSystem
-from CashierTest import MerchantProccesorAdapterStub, ValidCard, MerchantProccesorAdapterSpy
+from CashierTest import MerchantProccesorAdapterStub, MerchantProccesorAdapterSpy
 from Clock import ManualClock
 from RestInterface import Interface
 from RestSession import RestSession
-from TusLibrosTest import TusLibrosTest
+from TusLibrosTest import TusLibrosTest, ValidCard
 
 
 class AthenticationSystemSimulator(AuthenticationSystem):
@@ -214,16 +214,16 @@ class InterfaceTest(TusLibrosTest):
 
     def testMerchantProccesorReceivesTheRightCreditCard(self):
 
-        merchantProcessor = MerchantProccesorAdapterSpy()
+        merchantProccesor = MerchantProccesorAdapterSpy()
         interface = Interface(self.defaultAuthenticationSystem(), self.defaultSalesBook(), {}, self.defaultCatalog(),
-                              merchantProcessor, ManualClock())
+                              merchantProccesor, ManualClock())
         an_user = self.validUsername()
         aCart = interface.createCart(an_user, self.validPassword())
         anISBN = "1234"
         interface.addToCart(aCart, anISBN, quantity=2)
         aCreditCard = ValidCard()
         interface.checkout(aCart, aCreditCard, an_user)
-        self.assertTrue(aCreditCard in merchantProcessor.hasCharge[0])
+        self.assertTrue(merchantProccesor.hasDebitCard(aCreditCard))
 
     def invalidID(self):
         return "1111"

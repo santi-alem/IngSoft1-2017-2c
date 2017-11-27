@@ -14,13 +14,13 @@ class CartTests(TusLibrosTest):
     def testCartIsNotEmptyAfterAddingProducts(self):
         aCart = Cart(self.defaultCatalog())
         aProduct = self.productSellByCompany()
-        aCart.add(aProduct, self.productSellByCompany())
+        aCart.add(aProduct, 1)
         self.assertFalse(aCart.isEmpty())
 
     def testCartContainsAddedIsInCart(self):
         aCart = Cart(self.defaultCatalog())
         aProduct = self.productSellByCompany()
-        aCart.add(aProduct, self.productSellByCompany())
+        aCart.add(aProduct, 1)
         self.assertTrue(aCart.contains(aProduct))
 
     def testCanAddMultipleItemsToCart(self):
@@ -41,7 +41,8 @@ class CartTests(TusLibrosTest):
         aProduct = self.productSellByCompany()
         aCart.add(aProduct, 3)
 
-        self.assertTrue(1 in aCart.itemsList)
+        self.assertFalse(aCart.isEmpty())
+        self.assertTrue(aCart.contains(aProduct))
         self.assertEquals(aCart.numberOf(aProduct), 3)
 
     def testCanAddMoreThanOneProductMultipleTimes(self):
@@ -51,7 +52,7 @@ class CartTests(TusLibrosTest):
         aCart.add(aProduct, 1)
         aCart.add(aProduct, 3)
 
-        self.assertTrue(1 in aCart.itemsList)
+        self.assertTrue(aCart.contains(aProduct))
         self.assertEquals(aCart.numberOf(aProduct), 4)
 
     def testCantAddlessThanOneProduct(self):
@@ -64,6 +65,8 @@ class CartTests(TusLibrosTest):
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, Cart._quantityErrorMessage)
+            self.assertTrue(aCart.isEmpty())
+
 
     def testCantAddProductNotSellByCompany(self):
         aCart = Cart(self.defaultCatalog())

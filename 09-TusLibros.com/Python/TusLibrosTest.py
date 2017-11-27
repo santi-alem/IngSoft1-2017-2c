@@ -1,6 +1,9 @@
+import datetime
+import random
 from unittest import TestCase
 
 from Cart import Cart
+from CreditCard import CreditCard, MonthYear
 
 
 class TusLibrosTest(TestCase):
@@ -8,7 +11,8 @@ class TusLibrosTest(TestCase):
         return "Some Client"
 
     def defaultCatalog(self):
-        return {self.productSellByCompany(): self.productPrice(), self.otherProductSellByCompany(): self.otherProductPrice()}
+        return {self.productSellByCompany(): self.productPrice(),
+                self.otherProductSellByCompany(): self.otherProductPrice()}
 
     def otherProductPrice(self):
         return 100.5
@@ -30,3 +34,33 @@ class TusLibrosTest(TestCase):
         aCart.add(self.productSellByCompany(), 1)
         aCart.add(self.otherProductSellByCompany(), 1)
         return aCart
+
+    def validCard(self):
+        someName = random.choice("aabbcccdde  effgghhii")
+        cardNumber = random.randint(1111111111111111, 9999999999999999)
+        expirationDate = datetime.date.today() + datetime.timedelta(days=365)
+        return CreditCard(someName, cardNumber, MonthYear(expirationDate.year, expirationDate.month))
+
+    def alwaysDatedCard(self):
+        someName = random.choice("aabbcccdde  effgghhii")
+        cardNumber = random.randint(1111111111111111, 9999999999999999)
+        today = datetime.date.today()
+        expirationDate = today - datetime.timedelta(days=today.day + 1)
+
+        return CreditCard(someName, cardNumber, MonthYear(expirationDate.month, expirationDate.year))
+
+
+def ValidCard():
+    someName = random.choice("aabbcccdde  effgghhii")
+    cardNumber = random.randint(1111111111111111, 9999999999999999)
+    expirationDate = datetime.date.today() + datetime.timedelta(days=365)
+    return CreditCard(someName, cardNumber, MonthYear(expirationDate.year, expirationDate.month))
+
+
+def AlwaysDatedCard():
+    someName = random.choice("aabbcccdde  effgghhii")
+    cardNumber = random.randint(1111111111111111, 9999999999999999)
+    today = datetime.date.today()
+    expirationDate = today - datetime.timedelta(days=today.day + 1)
+
+    return CreditCard(someName, cardNumber, MonthYear(expirationDate.month, expirationDate.year))

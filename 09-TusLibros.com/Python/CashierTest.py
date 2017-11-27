@@ -1,11 +1,7 @@
-import datetime
-import random
-
 from Cart import Cart
 from Cashier import Cashier
-from CreditCard import CreditCard
 from MerchantProcessor import MerchantProccesorAdapter
-from TusLibrosTest import TusLibrosTest
+from TusLibrosTest import TusLibrosTest, ValidCard, AlwaysDatedCard
 
 
 class CashierTest(TusLibrosTest):
@@ -25,12 +21,13 @@ class CashierTest(TusLibrosTest):
 
         try:
             salesBook = []
-            aCashier = Cashier(merchantProccesor, aCart, AlwaysDatedCard(), self.aClient(), salesBook)
+            aCreditCard = AlwaysDatedCard()
+            aCashier = Cashier(merchantProccesor, aCart, aCreditCard, self.aClient(), salesBook)
             aCashier.checkout()
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, Cashier.CREDIT_CARD_EXPIRED)
-            self.assertEquals(merchantProccesor.hasCharge, [])
+            self.assertFalse(merchantProccesor.hasDebitCard(aCreditCard))
 
     def testCashierCalculatesSalesTotalCorectly(self):
         aCart = self.createCartWithSomeBooks()
@@ -44,7 +41,7 @@ class CashierTest(TusLibrosTest):
 
         sale = aCashier.checkout()
 
-        self.assertEquals(sale.getTotal, expectedTotal)
+        self.assertEquals(sale.total, expectedTotal)
 
     def testMerchantProccesorReceivesTherRightCreditCardAndAmount(self):
         aCart = self.createCartWithSomeBooks()
@@ -58,8 +55,9 @@ class CashierTest(TusLibrosTest):
 
         sale = aCashier.checkout()
 
-        self.assertEquals(sale.getTotal, expectedTotal)
-        self.assertEquals(merchantProccesor.hasCharge, [(expectedTotal, card)])
+        self.assertEquals(sale.total, expectedTotal)
+        self.assertTrue(merchantProccesor.hasDebitCard(card))
+        self.assertEquals(merchantProccesor.debitAmount(card), expectedTotal)
 
     def testCashierAddesSaleToSalesBook(self):
         aCart = self.createCartWithSomeBooks()
@@ -132,28 +130,18 @@ class CashierTest(TusLibrosTest):
             self.assertTrue(sale in salesBook)
 
 
-def ValidCard():
-    someName = random.choice("aabbcccdde  effgghhii")
-    cardNumber = random.randint(1111111111111111, 9999999999999999)
-    expirationDate = datetime.date.today() + datetime.timedelta(days=365)
-    return CreditCard(someName, cardNumber, expirationDate)
-
-
-def AlwaysDatedCard():
-    someName = random.choice("aabbcccdde  effgghhii")
-    cardNumber = random.randint(1111111111111111, 9999999999999999)
-    today = datetime.date.today()
-    expirationDate = today - datetime.timedelta(days=today.day + 1)
-
-    return CreditCard(someName, cardNumber, expirationDate)
-
-
 class MerchantProccesorAdapterSpy(MerchantProccesorAdapter):
     def __init__(self):
-        self.hasCharge = []
+        self.debitCards = {}
 
     def debit(self, total, creditCard):
-        self.hasCharge.append((total, creditCard))
+        self.debitCards[creditCard] = total
+
+    def hasDebitCard(self, aCard):
+        return aCard in self.debitCards
+
+    def debitAmount(self, aCard):
+        return self.debitCards[aCard]
 
 
 class MerchantProccesorAdapterStub(MerchantProccesorAdapter):

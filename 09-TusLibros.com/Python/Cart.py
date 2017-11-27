@@ -14,7 +14,7 @@ class Cart:
             self.itemsList.append(product)
 
     def assertQuantityIsPositiveAndInt(self, quantity):
-        if quantity < 1 and isinstance(quantity, int):
+        if quantity < 1 or not(isinstance(quantity, int)):
             raise Exception(self.__class__._quantityErrorMessage)
 
     def isValid(self, product):
