@@ -120,7 +120,7 @@ class InterfaceTest(TusLibrosTest):
         user = self.validUsername()
 
         try:
-            interface.checkout(self.invalidID(), user, self.validCardOwner(), self.validCardNumber(),
+            interface.checkout(self.invalidID(), self.validCardOwner(), self.validCardNumber(),
                                self.validCardExpirationDate())
             self.fail()
         except Exception as e:
@@ -158,8 +158,7 @@ class InterfaceTest(TusLibrosTest):
 
         quantity = 3
         cart = interface.addToCart(aCart, anISBN, quantity)
-        interface.checkout(aCart, an_user, self.validCardOwner(), self.validCardNumber(),
-                           self.validCardExpirationDate())
+        interface.checkout(aCart, self.validCardOwner(), self.validCardNumber(), self.validCardExpirationDate())
 
         clientSummary = interface.listUserPurchases(an_user, self.validPassword())
         self.assertEquals(clientSummary.getProductsCountsSize(), 1)
@@ -212,8 +211,7 @@ class InterfaceTest(TusLibrosTest):
         interface.addToCart(aCart, anISBN, quantity=2)
         interface.clock.advance(minutes=31)
         try:
-            interface.checkout(aCart, an_user, self.validCardOwner(), self.validCardNumber(),
-                               self.validCardExpirationDate())
+            interface.checkout(aCart, self.validCardOwner(), self.validCardNumber(), self.validCardExpirationDate())
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, RestSession.SESSION_TIME_OUT)
@@ -227,8 +225,7 @@ class InterfaceTest(TusLibrosTest):
         anISBN = "1234"
         interface.addToCart(aCart, anISBN, quantity=2)
 
-        interface.checkout(aCart, an_user, self.validCardOwner(), self.validCardNumber(),
-                           self.validCardExpirationDate())
+        interface.checkout(aCart, self.validCardOwner(), self.validCardNumber(), self.validCardExpirationDate())
 
     def assertValidCreditCardAndExpectedTotal(self, creditCard, total):
         self.assertEquals(creditCard.owner, self.validCardOwner())

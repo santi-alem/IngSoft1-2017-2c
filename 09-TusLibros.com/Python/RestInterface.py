@@ -64,12 +64,12 @@ class Interface:
         with session:
             session.cart.add(anISBN, quantity)
 
-    def checkout(self, cartID, user, aCardOwner, aCardNumber, aCardExpirationDate):
+    def checkout(self, cartID, aCardOwner, aCardNumber, aCardExpirationDate):
         session = self.getSession(cartID)
         with session:
             cart = session.cart
             aCreditCard = CreditCard(aCardOwner, aCardNumber, aCardExpirationDate)
-            cashier = Cashier(self.merchantProcessor, cart, aCreditCard, user, self.salesBook)
+            cashier = Cashier(self.merchantProcessor, cart, aCreditCard, session.clientId, self.salesBook)
             cashier.checkout()
 
     def listUserPurchases(self, username, password):
