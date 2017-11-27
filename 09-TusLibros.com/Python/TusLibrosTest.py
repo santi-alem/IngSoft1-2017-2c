@@ -36,18 +36,32 @@ class TusLibrosTest(TestCase):
         return aCart
 
     def validCard(self):
-        someName = random.choice("aabbcccdde  effgghhii")
-        cardNumber = random.randint(1111111111111111, 9999999999999999)
-        expirationDate = datetime.date.today() + datetime.timedelta(days=365)
-        return CreditCard(someName, cardNumber, MonthYear(expirationDate.year, expirationDate.month))
+        someName = self.validCardOwner()
+        cardNumber = self.validCardNumber()
+        month_year = self.validCardExpirationDate()
+
+        return CreditCard(someName, cardNumber, month_year)
+
+    def validCardExpirationDate(self):
+        return MonthYear((datetime.date.today() + datetime.timedelta(days=365)).year, (
+            datetime.date.today() + datetime.timedelta(days=365)).month)
+
+    def validCardNumber(self):
+        return "1111222233334444"
+
+    def validCardOwner(self):
+        return "Valid Owner Name"
 
     def alwaysDatedCard(self):
-        someName = random.choice("aabbcccdde  effgghhii")
-        cardNumber = random.randint(1111111111111111, 9999999999999999)
+        someName = self.validCardOwner()
+        cardNumber = self.validCardNumber()
         today = datetime.date.today()
-        expirationDate = today - datetime.timedelta(days=today.day + 1)
+        month_year = self.datedCardExpirationDate(today)
+        return CreditCard(someName, cardNumber, month_year)
 
-        return CreditCard(someName, cardNumber, MonthYear(expirationDate.month, expirationDate.year))
+    def datedCardExpirationDate(self, today):
+        return MonthYear((today - datetime.timedelta(days=today.day + 1)).month, (
+            today - datetime.timedelta(days=today.day + 1)).year)
 
 
 def ValidCard():

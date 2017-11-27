@@ -15,3 +15,6 @@ class MonthYear:
 
     def isBefore(self, date):
         return self.year <= date.year and self.month < date.month
+
+    def __eq__(self, other):
+        return self.year == other.year and self.month == other.month

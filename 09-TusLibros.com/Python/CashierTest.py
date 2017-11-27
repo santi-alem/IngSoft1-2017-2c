@@ -1,7 +1,7 @@
 from Cart import Cart
 from Cashier import Cashier
 from MerchantProcessor import MerchantProccesorAdapter
-from TusLibrosTest import TusLibrosTest, ValidCard, AlwaysDatedCard
+from TusLibrosTest import TusLibrosTest
 
 
 class CashierTest(TusLibrosTest):
@@ -9,7 +9,7 @@ class CashierTest(TusLibrosTest):
         aCart = Cart(self.defaultCatalog())
         try:
             salesBook = []
-            aCashier = Cashier(MerchantProccesorAdapterSpy(), aCart, ValidCard(), self.aClient(), salesBook)
+            aCashier = Cashier(MerchantProccesorAdapterSpy(), aCart, self.validCard(), self.aClient(), salesBook)
             aCashier.checkout()
             self.fail()
         except Exception as e:
@@ -21,7 +21,7 @@ class CashierTest(TusLibrosTest):
 
         try:
             salesBook = []
-            aCreditCard = AlwaysDatedCard()
+            aCreditCard = self.alwaysDatedCard()
             aCashier = Cashier(merchantProccesor, aCart, aCreditCard, self.aClient(), salesBook)
             aCashier.checkout()
             self.fail()
@@ -34,7 +34,7 @@ class CashierTest(TusLibrosTest):
 
         expectedTotal = self.productPrice() + self.otherProductPrice()
         merchantProccesor = MerchantProccesorAdapterSpy()
-        card = ValidCard()
+        card = self.validCard()
 
         salesBook = []
         aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
@@ -48,7 +48,7 @@ class CashierTest(TusLibrosTest):
 
         expectedTotal = self.productPrice() + self.otherProductPrice()
         merchantProccesor = MerchantProccesorAdapterSpy()
-        card = ValidCard()
+        card = self.validCard()
 
         salesBook = []
         aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
@@ -64,7 +64,7 @@ class CashierTest(TusLibrosTest):
 
         expectedTotal = self.productPrice() + self.otherProductPrice()
         merchantProccesor = MerchantProccesorAdapterSpy()
-        card = ValidCard()
+        card = self.validCard()
 
         salesBook = []
         aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
@@ -75,12 +75,12 @@ class CashierTest(TusLibrosTest):
 
     def testCashierCantCheckoutWithStolenCard(self):
 
-        def merchantProccesorStolenCardException():
+        def merchantProccesorStolenCardException(**kwargs):
             raise Exception(MerchantProccesorAdapter.CREDIT_CARD_STOLEN)
 
         aCart = self.createCartWithSomeBooks()
         merchantProccesor = MerchantProccesorAdapterStub(merchantProccesorStolenCardException)
-        card = ValidCard()
+        card = self.validCard()
         salesBook = []
         aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
 
@@ -93,12 +93,12 @@ class CashierTest(TusLibrosTest):
 
     def testCashierCantCheckoutWithCardWithNegativeBalance(self):
 
-        def merchantProccesorStolenCardException():
+        def merchantProccesorStolenCardException(**kwargs):
             raise Exception(MerchantProccesorAdapter.CREDIT_CARD_WITHOUT_CREDIT)
 
         aCart = self.createCartWithSomeBooks()
         merchantProccesor = MerchantProccesorAdapterStub(merchantProccesorStolenCardException)
-        card = ValidCard()
+        card = self.validCard()
         salesBook = []
         aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
 
@@ -114,7 +114,7 @@ class CashierTest(TusLibrosTest):
 
         expectedTotal = self.productPrice() + self.otherProductPrice()
         merchantProccesor = MerchantProccesorAdapterSpy()
-        card = ValidCard()
+        card = self.validCard()
         salesBook = []
 
         aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
@@ -149,4 +149,5 @@ class MerchantProccesorAdapterStub(MerchantProccesorAdapter):
         self.toExcexute = toExcexute
 
     def debit(self, total, creditCard):
-        return self.toExcexute()
+        return self.toExcexute(total=total, creditCard=creditCard)
+

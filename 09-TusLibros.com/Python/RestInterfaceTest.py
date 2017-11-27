@@ -1,9 +1,9 @@
 from AuthenticationSystem import AuthenticationSystem
-from CashierTest import MerchantProccesorAdapterStub, MerchantProccesorAdapterSpy
+from CashierTest import MerchantProccesorAdapterStub
 from Clock import ManualClock
 from RestInterface import Interface
 from RestSession import RestSession
-from TusLibrosTest import TusLibrosTest, ValidCard
+from TusLibrosTest import TusLibrosTest
 
 
 class AthenticationSystemSimulator(AuthenticationSystem):
@@ -39,13 +39,16 @@ class InterfaceTest(TusLibrosTest):
         return "INVALID_USER"
 
     def defaultInterface(self):
+        def merchantProccesorDoesNothing(**kwargs):
+            pass
+
         salesBook = self.defaultSalesBook()
         catalogue = self.defaultCatalog()
         cartList = self.defaultCarts()
         authenticationSystem = self.defaultAuthenticationSystem()
         clock = ManualClock()
         return Interface(authenticationSystem, salesBook, cartList, catalogue,
-                         MerchantProccesorAdapterStub(lambda: None), clock)
+                         MerchantProccesorAdapterStub(merchantProccesorDoesNothing), clock)
 
     def testcannotCreateCartWithInvalidClientId(self):
         interface = self.defaultInterface()
@@ -117,7 +120,8 @@ class InterfaceTest(TusLibrosTest):
         user = self.validUsername()
 
         try:
-            interface.checkout(self.invalidID(), ValidCard(), user)
+            interface.checkout(self.invalidID(), user, self.validCardOwner(), self.validCardNumber(),
+                               self.validCardExpirationDate())
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, Interface.INVALID_CART_ID)
@@ -154,7 +158,8 @@ class InterfaceTest(TusLibrosTest):
 
         quantity = 3
         cart = interface.addToCart(aCart, anISBN, quantity)
-        interface.checkout(aCart, ValidCard(), an_user)
+        interface.checkout(aCart, an_user, self.validCardOwner(), self.validCardNumber(),
+                           self.validCardExpirationDate())
 
         clientSummary = interface.listUserPurchases(an_user, self.validPassword())
         self.assertEquals(clientSummary.getProductsCountsSize(), 1)
@@ -207,23 +212,29 @@ class InterfaceTest(TusLibrosTest):
         interface.addToCart(aCart, anISBN, quantity=2)
         interface.clock.advance(minutes=31)
         try:
-            interface.checkout(aCart, ValidCard(), an_user)
+            interface.checkout(aCart, an_user, self.validCardOwner(), self.validCardNumber(),
+                               self.validCardExpirationDate())
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, RestSession.SESSION_TIME_OUT)
 
-    def testMerchantProccesorReceivesTheRightCreditCard(self):
-
-        merchantProccesor = MerchantProccesorAdapterSpy()
+    def testMerchantProccesorReceivesTheRightCreditCardAndTotal(self):
+        merchantProccesor = MerchantProccesorAdapterStub(self.assertValidCreditCardAndExpectedTotal)
         interface = Interface(self.defaultAuthenticationSystem(), self.defaultSalesBook(), {}, self.defaultCatalog(),
                               merchantProccesor, ManualClock())
         an_user = self.validUsername()
         aCart = interface.createCart(an_user, self.validPassword())
         anISBN = "1234"
         interface.addToCart(aCart, anISBN, quantity=2)
-        aCreditCard = ValidCard()
-        interface.checkout(aCart, aCreditCard, an_user)
-        self.assertTrue(merchantProccesor.hasDebitCard(aCreditCard))
+
+        interface.checkout(aCart, an_user, self.validCardOwner(), self.validCardNumber(),
+                           self.validCardExpirationDate())
+
+    def assertValidCreditCardAndExpectedTotal(self, creditCard, total):
+        self.assertEquals(creditCard.owner, self.validCardOwner())
+        self.assertEquals(creditCard.expirationDate, self.validCardExpirationDate())
+        self.assertEquals(creditCard.number, self.validCardNumber())
+        self.assertEquals(self.productPrice() * 2, total)
 
     def invalidID(self):
         return "1111"
