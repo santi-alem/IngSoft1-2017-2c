@@ -1,5 +1,5 @@
 from AuthenticationSystem import AuthenticationSystem
-from CashierTest import MerchantProccesorAdapterStub, ValidCard, AlwaysDatedCard
+from CashierTest import MerchantProccesorAdapterStub, ValidCard, MerchantProccesorAdapterSpy
 from Clock import ManualClock
 from RestInterface import Interface
 from RestSession import RestSession
@@ -212,39 +212,18 @@ class InterfaceTest(TusLibrosTest):
         except Exception as e:
             self.assertEquals(e.message, RestSession.SESSION_TIME_OUT)
 
+    def testMerchantProccesorReceivesTheRightCreditCard(self):
 
-    def testInterfaceCanListUsersMultiplePurchases(self):
-        interface = self.defaultInterface()
-
-        user = self.validUsername()
-        aCart = interface.createCart(user, self.validPassword())
-        anISBN = self.productSellByCompany()
-        anotherISBN = self.otherProductSellByCompany()
-
-        interface.addToCart(aCart, anISBN, quantity=3)
-        interface.checkout(aCart, ValidCard(), user)
-
-        aCart = interface.createCart(user, self.validPassword())
-        interface.addToCart(aCart, anISBN, quantity=3)
-        interface.addToCart(aCart, anotherISBN, quantity=2)
-        interface.checkout(aCart, ValidCard(), user)
-
-        clientSummary = interface.listUserPurchases(user, self.validPassword())
-        self.assertEquals(clientSummary.getProductsCounts(), {anISBN: 6, anotherISBN: 2})
-
-    def testInterfaceDoenstDoAnythingIfCheckoutFails(self):
-        interface = self.defaultInterface()
-        user = self.validUsername()
-        aCart = interface.createCart(user, self.validPassword())
+        merchantProcessor = MerchantProccesorAdapterSpy()
+        interface = Interface(self.defaultAuthenticationSystem(), self.defaultSalesBook(), {}, self.defaultCatalog(),
+                              merchantProcessor, ManualClock())
+        an_user = self.validUsername()
+        aCart = interface.createCart(an_user, self.validPassword())
         anISBN = "1234"
-
-        interface.addToCart(aCart, anISBN, quantity=3)
-        try:
-            interface.checkout(aCart, AlwaysDatedCard(), user)
-            self.fail()
-        except Exception:
-            clientSummary = interface.listUserPurchases(user, self.validPassword())
-            self.assertEquals(clientSummary.getProductsCounts(), {})
+        interface.addToCart(aCart, anISBN, quantity=2)
+        aCreditCard = ValidCard()
+        interface.checkout(aCart, aCreditCard, an_user)
+        self.assertTrue(aCreditCard in merchantProcessor.hasCharge[0])
 
     def invalidID(self):
         return "1111"
