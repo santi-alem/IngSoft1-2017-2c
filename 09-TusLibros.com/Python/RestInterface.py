@@ -47,7 +47,9 @@ class Interface:
         return cartID
 
     def listCart(self, cartID):
-        return self.getSession(cartID).cart.listCart()
+        session = self.getSession(cartID)
+        with session:
+            return session.cart.productCount()
 
     def authenticate(self, username, password):
         self.authenticationSystem.authenticate(username, password)

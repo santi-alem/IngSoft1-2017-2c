@@ -1,10 +1,9 @@
-from unittest import TestCase
-
 from AuthenticationSystem import AuthenticationSystem
 from CashierTest import MerchantProccesorAdapterStub, ValidCard, AlwaysDatedCard
 from Clock import ManualClock
 from RestInterface import Interface
 from RestSession import RestSession
+from TusLibrosTest import TusLibrosTest
 
 
 class AthenticationSystemSimulator(AuthenticationSystem):
@@ -16,10 +15,7 @@ class AthenticationSystemSimulator(AuthenticationSystem):
             raise Exception(AuthenticationSystem.INVALID_CLIENTID_OR_PASSWORD)
 
 
-class InterfaceTest(TestCase):
-    def defaultlCatalogue(self):
-        return {"1234": 100.0, "4321": 200.0}
-
+class InterfaceTest(TusLibrosTest):
     def defaultSalesBook(self):
         return []
 
@@ -36,16 +32,22 @@ class InterfaceTest(TestCase):
     def validPassword(self):
         return "123"
 
+    def invalidPassword(self):
+        return "INVALID_PASSWORD"
+
+    def invalidUser(self):
+        return "INVALID_USER"
+
     def defaultInterface(self):
         salesBook = self.defaultSalesBook()
-        catalogue = self.defaultlCatalogue()
+        catalogue = self.defaultCatalog()
         cartList = self.defaultCarts()
         authenticationSystem = self.defaultAuthenticationSystem()
         clock = ManualClock()
         return Interface(authenticationSystem, salesBook, cartList, catalogue,
                          MerchantProccesorAdapterStub(lambda: None), clock)
 
-    def testInterfaceFailsToCreateCartWhenUserDoesntExist(self):
+    def testcannotCreateCartWithInvalidClientId(self):
         interface = self.defaultInterface()
         fakeUsername = "aaaaaaa"
         somePassword = "aasssdd"
@@ -55,24 +57,45 @@ class InterfaceTest(TestCase):
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, AuthenticationSystem.INVALID_CLIENTID_OR_PASSWORD)
-            self.assertEquals(interface.sessions, {})
 
-    def testInterfaceCreatesEmptyCart(self):
+    def testcannotCreateCartWithInvalidPassword(self):
+        interface = self.defaultInterface()
+        username = self.validUsername()
+        somePassword = "aasssdd"
+
+        try:
+            interface.createCart(username, somePassword)
+            self.fail()
+        except Exception as e:
+            self.assertEquals(e.message, AuthenticationSystem.INVALID_CLIENTID_OR_PASSWORD)
+
+    def testCreatesEmptyCart(self):
         interface = self.defaultInterface()
 
         cart_ID = interface.createCart(self.validUsername(), self.validPassword())
 
         self.assertTrue(cart_ID)
-        self.assertEquals(interface.listCart(cart_ID), [])
+        self.assertEquals(len(interface.listCart(cart_ID)), 0)
 
-    def testCanAddBooks(self):
+    def testCantAddBooksWithInvalidId(self):
+        interface = self.defaultInterface()
+        cartID = interface.createCart(self.validUsername(), self.validPassword())
+        anISBN = "1234"
+        try:
+            interface.addToCart(self.invalidID(), anISBN, quantity=1)
+            self.fail()
+        except Exception as e:
+            self.assertEquals(e.message, Interface.INVALID_CART_ID)
+            self.assertEqual(len(interface.listCart(cartID)), 0)
+
+    def testAddedBooksAreListed(self):
         interface = self.defaultInterface()
         cartID = interface.createCart(self.validUsername(), self.validPassword())
         anISBN = "1234"
 
         interface.addToCart(cartID, anISBN, quantity=1)
 
-        self.assertEqual(interface.listCart(cartID), [(anISBN, 1)])
+        self.assertTrue(anISBN in interface.listCart(cartID))
 
     def testTwoCartsWithDifferentIDSAreDifferent(self):
         interface = self.defaultInterface()
@@ -86,8 +109,69 @@ class InterfaceTest(TestCase):
         interface.addToCart(aCart, anISBN, quantity=2)
 
         self.assertNotEquals(aCart, anotherCart)
-        self.assertEqual(interface.listCart(aCart), [(anISBN, 2)])
-        self.assertEqual(interface.listCart(anotherCart), [])
+        self.assertEqual(len(interface.listCart(aCart)), 1)
+        self.assertEqual(len(interface.listCart(anotherCart)), 0)
+
+    def testCantCheckOutCartWithInvalidCartID(self):
+        interface = self.defaultInterface()
+        user = self.validUsername()
+
+        try:
+            interface.checkout(self.invalidID(), ValidCard(), user)
+            self.fail()
+        except Exception as e:
+            self.assertEquals(e.message, Interface.INVALID_CART_ID)
+            client_summary = interface.listUserPurchases(user, self.validPassword())
+            self.assertEquals(client_summary.getProductsCounts(), {})
+
+    def testCantListPurchasesWithInvalidClientID(self):
+        interface = self.defaultInterface()
+        try:
+            interface.listUserPurchases(self.invalidUser(), self.validPassword())
+        except Exception as e:
+            self.assertEquals(e.message, AuthenticationSystem.INVALID_CLIENTID_OR_PASSWORD)
+
+    def testCantListPurchasesWithInvalidPassword(self):
+        interface = self.defaultInterface()
+        try:
+            interface.listUserPurchases(self.validUsername(), self.invalidPassword())
+        except Exception as e:
+            self.assertEquals(e.message, AuthenticationSystem.INVALID_CLIENTID_OR_PASSWORD)
+
+    def testPurchasesAreEmptyIfClientHasntPurchaseYet(self):
+        interface = self.defaultInterface()
+        purchase = interface.listUserPurchases(self.validUsername(), self.validPassword())
+        purchase = interface.listUserPurchases(self.validUsername(), self.validPassword())
+        self.assertAlmostEqual(purchase.getTotal(), 0, 0.1)
+        self.assertTrue(purchase.productCountsAreEmpty())
+
+    def testcheckOutAffectsClientPurchases(self):
+        interface = self.defaultInterface()
+
+        an_user = self.validUsername()
+        aCart = interface.createCart(an_user, self.validPassword())
+        anISBN = self.productSellByCompany()
+
+        quantity = 3
+        cart = interface.addToCart(aCart, anISBN, quantity)
+        interface.checkout(aCart, ValidCard(), an_user)
+
+        clientSummary = interface.listUserPurchases(an_user, self.validPassword())
+        self.assertEquals(clientSummary.getProductsCountsSize(), 1)
+        self.assertEquals(clientSummary.numberOf(anISBN), quantity)
+        self.assertEquals(clientSummary.getTotal(), quantity * self.productPrice())
+
+    def testCantAddToCartWithInvalidClientID(self):
+        interface = self.defaultInterface()
+        anISBN = "1234"
+
+        try:
+            interface.addToCart(self.invalidID(), anISBN, quantity=3)
+            self.fail()
+        except Exception as e:
+            self.assertEquals(e.message, Interface.INVALID_CART_ID)
+            client_summary = interface.listUserPurchases(self.validUsername(), self.validPassword())
+            self.assertEquals(client_summary.getProductsCounts(), {})
 
     def testInterfaceCantAddToExpiredCart(self):
         interface = self.defaultInterface()
@@ -97,6 +181,19 @@ class InterfaceTest(TestCase):
         interface.clock.advance(minutes=31)
         try:
             interface.addToCart(aCart, anISBN, quantity=2)
+            self.fail()
+        except Exception as e:
+            self.assertEquals(e.message, RestSession.SESSION_TIME_OUT)
+
+    def testInterfaceCantListExpiredCart(self):
+        interface = self.defaultInterface()
+
+        aCart = interface.createCart(self.validUsername(), self.validPassword())
+        anISBN = "1234"
+        interface.addToCart(aCart, anISBN, quantity=2)
+        interface.clock.advance(minutes=31)
+        try:
+            interface.listCart(aCart)
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, RestSession.SESSION_TIME_OUT)
@@ -115,26 +212,14 @@ class InterfaceTest(TestCase):
         except Exception as e:
             self.assertEquals(e.message, RestSession.SESSION_TIME_OUT)
 
-    def testInterfaceAddsPurchaseAfterCheckOut(self):
-        interface = self.defaultInterface()
-
-        an_user = self.validUsername()
-        aCart = interface.createCart(an_user, self.validPassword())
-        anISBN = "1234"
-
-        interface.addToCart(aCart, anISBN, quantity=3)
-        interface.checkout(aCart, ValidCard(), an_user)
-
-        clientSummary = interface.listUserPurchases(an_user, self.validPassword())
-        self.assertEquals(clientSummary.getProductsCounts(), {anISBN: 3})
 
     def testInterfaceCanListUsersMultiplePurchases(self):
         interface = self.defaultInterface()
 
         user = self.validUsername()
         aCart = interface.createCart(user, self.validPassword())
-        anISBN = "1234"
-        anotherISBN = "4321"
+        anISBN = self.productSellByCompany()
+        anotherISBN = self.otherProductSellByCompany()
 
         interface.addToCart(aCart, anISBN, quantity=3)
         interface.checkout(aCart, ValidCard(), user)
@@ -161,28 +246,5 @@ class InterfaceTest(TestCase):
             clientSummary = interface.listUserPurchases(user, self.validPassword())
             self.assertEquals(clientSummary.getProductsCounts(), {})
 
-    def testInterfaceFailsWhenAddingToCartThatDoenstExists(self):
-        interface = self.defaultInterface()
-        aFakeCart = "fakeCart"
-        anISBN = "1234"
-
-        try:
-            interface.addToCart(aFakeCart, anISBN, quantity=3)
-            self.fail()
-        except Exception as e:
-            self.assertEquals(e.message, Interface.INVALID_CART_ID)
-            client_summary = interface.listUserPurchases(self.validUsername(), self.validPassword())
-            self.assertEquals(client_summary.getProductsCounts(), {})
-
-    def testInterfaceFailsWhenCheckingOutCartThatDoenstExists(self):
-        interface = self.defaultInterface()
-        aFakeCart = "fakeCart"
-        user = self.validUsername()
-
-        try:
-            interface.checkout(aFakeCart, ValidCard(), user)
-            self.fail()
-        except Exception as e:
-            self.assertEquals(e.message, Interface.INVALID_CART_ID)
-            client_summary = interface.listUserPurchases(user, self.validPassword())
-            self.assertEquals(client_summary.getProductsCounts(), {})
+    def invalidID(self):
+        return "1111"

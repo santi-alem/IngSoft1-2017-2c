@@ -27,7 +27,7 @@ class Cart:
         books = set(self.itemsList)
         bookList = []
         for i in books:
-            bookList.append((i, self.itemsList.count(i)))
+            bookList.append((i, self.numberOf(i)))
         return bookList
 
     def total(self):
@@ -38,3 +38,9 @@ class Cart:
 
     def productCount(self):
         return {i[0]: i[1] for i in self.listCart()}
+
+    def contains(self, anISBN):
+        return anISBN in self.itemsList
+
+    def numberOf(self, aProduct):
+        return self.itemsList.count(aProduct)

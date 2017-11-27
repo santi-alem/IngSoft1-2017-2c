@@ -23,6 +23,7 @@ class Cashier(object):
         self.hasCheckOut = False
 
     def checkout(self):
+        self.assertCashierHasntAlreadyCheckout()
         total = self.total()
         self.merchantProccesor.debit(total, self.creditCard)
         self.hasCheckOut = True
@@ -43,3 +44,7 @@ class Cashier(object):
     def assertCartIsNotEmpty(self, aCart):
         if aCart.isEmpty():
             raise Exception(Cashier.CAN_NOT_CHECKOUT_EMPTY_CART)
+
+    def assertCashierHasntAlreadyCheckout(self):
+        if self.hasCheckOut:
+            raise Exception(Cashier.CAN_CHECKOUT_ONLY_ONCE)

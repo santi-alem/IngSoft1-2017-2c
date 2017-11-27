@@ -1,70 +1,77 @@
 from unittest.case import TestCase
 
 from Cart import Cart
+from TusLibrosTest import TusLibrosTest
 
 
-class CartTests(TestCase):
-    def defaultCatalog(self):
-        return {1: 200, 2: 100}
+class CartTests(TusLibrosTest):
 
-    def testCartStartsEmpty(self):
+
+    def testCartAreCreatedEmpty(self):
         aCart = Cart(self.defaultCatalog())
-        self.assertEquals(aCart.itemsList, [])
+        self.assertTrue(aCart.isEmpty())
 
-    def testCanAddItemsToCart(self):
-
+    def testCartIsNotEmptyAfterAddingProducts(self):
         aCart = Cart(self.defaultCatalog())
-        anISBN = 1
+        aProduct = self.productSellByCompany()
+        aCart.add(aProduct, self.productSellByCompany())
+        self.assertFalse(aCart.isEmpty())
 
-        aCart.add(anISBN, 1)
-
-        self.assertEquals(aCart.itemsList, [anISBN])
+    def testCartContainsAddedIsInCart(self):
+        aCart = Cart(self.defaultCatalog())
+        aProduct = self.productSellByCompany()
+        aCart.add(aProduct, self.productSellByCompany())
+        self.assertTrue(aCart.contains(aProduct))
 
     def testCanAddMultipleItemsToCart(self):
         aCart = Cart(self.defaultCatalog())
 
-        anISBN = 1
-        anotherISBN = 2
+        aProduct = self.productSellByCompany()
+        anotherProduct = self.otherProductSellByCompany()
 
-        aCart.add(anISBN, 1)
-        aCart.add(anotherISBN, 1)
+        aCart.add(aProduct, 1)
+        aCart.add(anotherProduct, 1)
 
-        self.assertEquals(aCart.itemsList, [anISBN, anotherISBN])
+        self.assertTrue(aCart.contains(aProduct))
+        self.assertTrue(aCart.contains(anotherProduct))
 
-    def testCanAddMoreThanOneBooks(self):
+    def testCanAddMoreThanOneProduct(self):
         aCart = Cart(self.defaultCatalog())
 
-        aCart.add(1, 3)
+        aProduct = self.productSellByCompany()
+        aCart.add(aProduct, 3)
 
         self.assertTrue(1 in aCart.itemsList)
-        self.assertEquals(len(aCart.itemsList), 3)
+        self.assertEquals(aCart.numberOf(aProduct), 3)
 
-    def testCantAddlessThanOneBooks(self):
+    def testCanAddMoreThanOneProductMultipleTimes(self):
         aCart = Cart(self.defaultCatalog())
 
-        anISBN = 3
+        aProduct = self.productSellByCompany()
+        aCart.add(aProduct, 1)
+        aCart.add(aProduct, 3)
+
+        self.assertTrue(1 in aCart.itemsList)
+        self.assertEquals(aCart.numberOf(aProduct), 4)
+
+    def testCantAddlessThanOneProduct(self):
+        aCart = Cart(self.defaultCatalog())
+
+        someProduct = 2
 
         try:
-            aCart.add(anISBN, 0)
+            aCart.add(someProduct, 0)
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, Cart._quantityErrorMessage)
 
-    def testCantAddInvalidBookISBN(self):
+    def testCantAddProductNotSellByCompany(self):
         aCart = Cart(self.defaultCatalog())
-        anISBN = 3
+        aProduct = self.invalidProduct()
 
         try:
-            aCart.add(anISBN, 1)
+            aCart.add(aProduct, 1)
             self.fail()
         except Exception as e:
             self.assertEquals(e.message, Cart._invalidProductErrorMessage)
             self.assertTrue(aCart.isEmpty())
-
-    def testCartListCorrectly(self):
-        aCart = Cart(self.defaultCatalog())
-        anISBN = 1
-        anotherISBN = 2
-        aCart.add(anISBN, 2)
-        aCart.add(anotherISBN, 4)
-        self.assertEqual(aCart.listCart(), [(anISBN, 2), (anotherISBN, 4)])  # ??????????????????????

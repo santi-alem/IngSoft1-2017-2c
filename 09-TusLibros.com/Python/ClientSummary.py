@@ -26,7 +26,14 @@ class ClientSummary:
             else:
                 productCount[product] = value
 
-    def total(self):
+    def getTotal(self):
         if self.total is None:
             self.total = reduce(lambda total, sale: total + sale.total, self.clientSales, 0)
         return self.total
+
+    def getProductsCountsSize(self):
+        return len(self.getProductsCounts())
+    def numberOf(self, product):
+        return self.getProductsCounts()[product]
+    def productCountsAreEmpty(self):
+        return len(self.productsCounts) == 0

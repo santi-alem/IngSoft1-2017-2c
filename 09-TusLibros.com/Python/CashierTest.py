@@ -1,26 +1,14 @@
 import datetime
 import random
-from unittest import TestCase
 
 from Cart import Cart
 from Cashier import Cashier
 from CreditCard import CreditCard
 from MerchantProcessor import MerchantProccesorAdapter
+from TusLibrosTest import TusLibrosTest
 
 
-class CashierTest(TestCase):
-    def defaultCatalog(self):
-        return {1: 200, 2: 100}
-
-    def aClient(self):
-        return "Some Client"
-
-    def createCartWithSomeBooks(self):
-        aCart = Cart(self.defaultCatalog())
-        aCart.add(1, 1)
-        aCart.add(2, 1)
-        return aCart
-
+class CashierTest(TusLibrosTest):
     def testCashierCantCheckoutEmptyCart(self):
         aCart = Cart(self.defaultCatalog())
         try:
@@ -44,18 +32,48 @@ class CashierTest(TestCase):
             self.assertEquals(e.message, Cashier.CREDIT_CARD_EXPIRED)
             self.assertEquals(merchantProccesor.hasCharge, [])
 
-    def testCashierCanDebitTotal(self):
+    def testCashierCalculatesSalesTotalCorectly(self):
         aCart = self.createCartWithSomeBooks()
+
+        expectedTotal = self.productPrice() + self.otherProductPrice()
         merchantProccesor = MerchantProccesorAdapterSpy()
         card = ValidCard()
 
         salesBook = []
         aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
 
-        aCashier.checkout()
+        sale = aCashier.checkout()
 
-        self.assertEquals(merchantProccesor.hasCharge,
-                          [(aCart.total(), card)])
+        self.assertEquals(sale.getTotal, expectedTotal)
+
+    def testMerchantProccesorReceivesTherRightCreditCardAndAmount(self):
+        aCart = self.createCartWithSomeBooks()
+
+        expectedTotal = self.productPrice() + self.otherProductPrice()
+        merchantProccesor = MerchantProccesorAdapterSpy()
+        card = ValidCard()
+
+        salesBook = []
+        aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
+
+        sale = aCashier.checkout()
+
+        self.assertEquals(sale.getTotal, expectedTotal)
+        self.assertEquals(merchantProccesor.hasCharge, [(expectedTotal, card)])
+
+    def testCashierAddesSaleToSalesBook(self):
+        aCart = self.createCartWithSomeBooks()
+
+        expectedTotal = self.productPrice() + self.otherProductPrice()
+        merchantProccesor = MerchantProccesorAdapterSpy()
+        card = ValidCard()
+
+        salesBook = []
+        aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
+
+        sale = aCashier.checkout()
+        self.assertEquals(len(salesBook), 1)
+        self.assertTrue(sale in salesBook)
 
     def testCashierCantCheckoutWithStolenCard(self):
 
@@ -92,6 +110,26 @@ class CashierTest(TestCase):
         except Exception as e:
             self.assertEquals(e.message, MerchantProccesorAdapter.CREDIT_CARD_WITHOUT_CREDIT)
             self.assertEquals(salesBook, [])
+
+    def testCashierCanCheckoutOnlyOnce(self):
+        aCart = self.createCartWithSomeBooks()
+
+        expectedTotal = self.productPrice() + self.otherProductPrice()
+        merchantProccesor = MerchantProccesorAdapterSpy()
+        card = ValidCard()
+        salesBook = []
+
+        aCashier = Cashier(merchantProccesor, aCart, card, self.aClient(), salesBook)
+
+        sale = aCashier.checkout()
+
+        try:
+            aCashier.checkout()
+            self.fail()
+        except Exception as e:
+            self.assertEquals(e.message, Cashier.CAN_CHECKOUT_ONLY_ONCE)
+            self.assertEquals(len(salesBook), 1)
+            self.assertTrue(sale in salesBook)
 
 
 def ValidCard():
